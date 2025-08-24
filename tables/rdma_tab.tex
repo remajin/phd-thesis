@@ -1,0 +1,15 @@
+\begin{table}[t]
+  \centering
+  % Use .5\textwidth to only have the table fill half the page,
+  % and \textwidth for the full page
+  \resizebox{.5\textwidth}{!}{
+	\begin{tabular}{llll}
+		Verb       & RC       & UC       & UD \\ \hline
+		SEND/RECV  & \cmark   & \cmark   & \cmark \\
+		WRITE      &  \cmark  &  \cmark  &  \xmark  \\
+		READ       &  \cmark  &  \xmark  &  \xmark
+	\end{tabular}
+  }
+	\caption{Operations supported by each transport type.
+	\label{tab:rdma}}
+\end{table}

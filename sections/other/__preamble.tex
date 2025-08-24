@@ -19,6 +19,7 @@
 \usepackage{url}
 \usepackage{caption}
 \usepackage{graphicx}
+\usepackage{pifont}
 
 \newglossarystyle{clong}{%
  \renewenvironment{theglossary}%
@@ -65,6 +66,13 @@
 \newcommand\bs{\char '134 }   % A backslash character for \tt font
 \newcommand{\lb}{\char '173 } % A left brace character for \tt font
 \newcommand{\rb}{\char '175 } % A right brace character for \tt font
+
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+
+\newcommand{\na}[1]{\textcolor{blue}{Noaman: #1} }
+\newcommand{\je}[1]{\textcolor{red}{Jakob: #1} }
+\newcommand{\name}{{\it Gossamer}}
 
 % one or two other commands
 \def\newfont#1#2{\@ifdefinable #1{\font #1=#2\relax}}

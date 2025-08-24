@@ -1,0 +1,38 @@
+\section{Background on RDMA}
+RDMA is a networking approach that allows one machine to directly access a remote machine's memory. It uses 
+the user-level zero-copy transfers to minimize the involvement of remote machine's operating system and CPU 
+as opposed to traditional TCP/IP stack that involve both on each machine heavily. There are many 
+implementations of this concept \cite{946704,pfister2001introduction,5289144,87568}, most popular of which 
+are InfiniBand, RoCE (RDMA over Converged Ethernet), and iWARP (internet Wide Area RDMA Protocol). The 
+results presented in this paper are obtained by using RoCE.
+
+\subsection{RDMA API}
+\label{s:rdmaapi} 
+RDMA hosts communicate using queue pairs (QPs) that consist of a send queue and a receive queue, and are 
+maintained by the NIC. Applications post operations to these QPs by using functions called \textit{verbs}. 
+For remote access the remote machine first needs to register a memory region with the NIC. The NIC driver 
+pins this region in physical memory. The address and a key related to this region then needs to be exchanged 
+between the machines out of band (i.e. without using RDMA). After this exchange, the remote memory can be 
+accessed without involving either of remote operating system or CPU. This is called 
+\textit{RDMA Memory Semantics}, and uses \textit{verbs} \textit{READ} and \textit{WRITE}.
+
+RDMA also provides \textit{Messaging Semantics} that use \textit{verbs} \textit{SEND} and \textit{RECV}. In 
+this case receiver has to post a \textit{RECV} \textit{verb} before the sender can send the data. In this 
+regard it is similar to an unbuffered sockets implementation. Just like \textit{Memory Semantics}, 
+\textit{Messaging Semantics} also bypass the remote kernel but unlike \textit{Memory Semantics}, it has to 
+involve remote CPU to post a \textit{RECV}. These \textit{verbs} also have slightly lower latency than 
+\textit{READ}  and \textit{WRITE} \cite{180191,179767}.
+
+\subsection{Transport types}
+RDMA transports are either connected or unconnected (also called datagram), and either reliable or unreliable. 
+Connected transport require a one-to-one connection between two QPs. If an application wants to communicate 
+with \textit{N} machines, it will need to create \textit{N} QPs. With unconnected transport one QP can 
+communicate with many QPs. For reliable transport NIC uses acknowledgments to guarantee in-order delivery and 
+return an error code on failure, while unreliable transport does not provide any such guarantee. InfiniBand 
+and RoCE use lossless link layer, so even in case of unreliable transports, losses are pretty rare and happen 
+because of bit error or link failure. In case of connected transport a failure will break the connection. Not 
+all transports provide all of the verbs. Table \ref{tab:rdma} gives an overview of transport types and the 
+verbs they support. Current implementations of RDMA only provide reliable connected (RC), unreliable 
+connected (UC) and unreliable datagram.
+
+\input{tables/rdma_tab}

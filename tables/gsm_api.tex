@@ -1,0 +1,13 @@
+\begin{table}
+\begin{lstlisting}
+let property = HashMap::new();
+let trust = gossamer::entrust(property);
+gossamer::spawn(|| {
+    trust.apply(|property| property.insert(``First Greeting'',``Hello''));
+    trust.apply_then(|property| property.insert(``Second Greeting'',``Hi''), 
+        |_| println!(``added second greeting''));
+});
+\end{lstlisting}
+\caption{A small example of delegation code}
+\label{tab:delegationexample}
+\end{table}

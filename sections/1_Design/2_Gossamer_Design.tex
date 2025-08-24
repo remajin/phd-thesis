@@ -1,0 +1,117 @@
+\section{Gossamer Design}
+
+\input{figures/design}
+
+\name{} allows developers to write rack-wide applications just like single machine applications. 
+Programmers will use the delegation framework to write applications that would be distributed by gossamer 
+with very few changes to the code. \ref{fig:design} shows a high level view of what a rack with multiple 
+\name{} applications would look like. Developers would use the controller machine to interact with the rack 
+and launch applications. Here controller machine is just a normal machine running \name{} processes like any 
+other machine in the rack, the only significance is that this will be the machine that users log into for 
+terminal access. Each machine in the rack would have a daemon running that would always be listening for 
+instructions from the controller machine. The daemon is responsible for determining the topology of the 
+rack and managing the applications. A machine can have multiple applications running on it at the same time. 
+Rack applications that are running simultaneously are isolated from each other like multiple processes on 
+a single machine. The rest of this section describes some design details that are particularly interesting.
+
+\subsection{Gossamer Daemon}
+\input{figures/process}
+
+As shown in \ref{fig:process}, each machine has \name{} daemon running. The daemon is responsible for 
+managing any \name{} processes running on the rack at any time. To launch an application, users will connect 
+with the controller machine and tell the daemon to start the process specifying how many kernel threads the 
+process should use.  The daemon will contact the remote machines and tell the daemons to launch the process. 
+The daemon will store metadata like gossamer-id, machine-ip etc. The daemon is also responsible for 
+detecting crashes on any local instance of a \name{} process and terminating across the whole rack. This means 
+that \name{} processes are fate sharing in the same way single machine processes crash if a single thread crashes.
+
+\subsection{Gossamer Process}
+To launch a \name{} process, the user logs into the controller machine and starts the application there. Since 
+parts of \name{} rely on similar memory layout (as discussed in \ref{s:header}), each machine in the rack 
+should be populated with the same binary ahead of time. The application needs to have its \textit{main} 
+function call a helper function from the \name{} library and pass a function that would act as the real 
+\textit{main} function along with how many threads the application needs to use across the whole rack. This 
+function will be referred to as \textit{gsm\_main} for the rest of the paper. The process consists of many 
+fibers per kernel thread for concurrent operation as shown in \ref{fig:process}. Fibers are lightweight, 
+userspace threads that can spawn on any kernel thread that is part of the \name{} process, and on any machine 
+in the rack. Fibers that need to access shared data make delegation requests consisting of closures that modify 
+the data as needed. From the point of view of th operating system, a single instance of \name{} process behaves 
+like any other normal process. The main difference would be that instead of using system calls like 
+\textit{getpid()}, a \name{} process contacts the daemon to get any metadata needed.
+
+\subsection{Trustee, Trust and Property}
+\input{figures/trustntrustee}
+
+Gossamer builds on the Trust/Trustee concept from \cite{trustreport}, which we introduce briefly here. A 
+\textit{Trustee} is a worker fiber that processes delegation requests and sends back the response. The 
+application can entrust some data to a trustee if the delegated work needs access to it and receive a 
+\textit{Trust} that holds relevant metadata. This entrusted data is referred to as \textit{Property}. The 
+Trust can be used to delegate any work that needs access to this property. \ref{fig:trustntrustee} shows the 
+relationship between Trust, Trustee and Property. A Trust can be cloned and shared with other fibers so that 
+they can also start delegating work that needs access to same property. Multiple properties can be entrusted 
+to a single trustee at the same time. Trustees can act as remote or local trustees based on where the fiber 
+trying to access the property lives in the rack.
+
+\subsection{Delegation Workflow}
+\label{s:del_flow}
+\input{tables/gsm_api}
+
+\name{} provides both blocking and nonblocking/asynchronous delegation operations. In case of blocking operations, the 
+delegating fiber will wait for the response from the trustee before continuing. For nonblocking delegation, the 
+delegating fiber will instead provide a callback closure to be executed upon completion of the request, and 
+continue without waiting. First we will describe the workflow for blocking delegation requests and then specify 
+how that differs from the nonblocking delegation. Each fiber issues a request that is put in a pending queue 
+before voluntarily yeilding the runtime. Each thread has a fiber that periodicaly checks for any incoming 
+responses and sends any requests in the pending queue. As there will be many fibers running on each thread this 
+will allow the polling fiber to send multiple requests as a larger batch, increasing the throughput of the system. 
+On the trustee side, one of the fibers is dedicated to polling for any incoming requests. Since any incoming 
+requests from the same thread will be contigous in memory, it can complete all of them and then send all of 
+the responses in a single batch. The fiber that polls for reponses on the requesting thread will then process 
+the responses and add the corresponding fibers back in to the ready to run queue. The main difference for 
+async delegation is that instead of yeilding after enqueuing the request, it just keeps going and enqueues any 
+subsequent requests as well. This fiber will yield the runtime when the pending queue is full, after which the 
+response polling fiber can run and send all of the requests to the respective trustees. Once it receives the 
+responses, it can execute any callback closures the user might have provided. This means that there is no 
+benefit to having multiple fibers per thread that issue requests as that is not needed for batching and the 
+fibers will be yielding far less frequently. \ref{tab:delegationexample} shows a small example program that 
+uses both types of delegation.
+
+\subsection{NoRef}
+Gossamer leverages the Rust type system to prevent the sending of references over delegation channels. One of 
+the first challenges that arise when extending delegation to multiple machines is the fact that any pointers 
+or references captured by a delegated closure will not be valid on a remote machine. This reference or pointer 
+will result in undefined behavior on any machine other than where it originated. To prevent this, \name{} uses 
+a combination of rust features named \textit{auto\_traits} and \textit{negative\_impls}. In rust, traits define 
+the behavior of data types. They inform the compiler what functionality a type has and can be used to restrict 
+which data types can be passed to a generic function. Auto\_traits is a feature that automatically implements 
+a trait for every data type, be it an existing type or user defined. A negative implementation is used to 
+exclude a data type from the auto implementation. \name{} defines an auto trait called \textit{NoRef}. Then 
+all the types that contain a reference or raw pointer are given negative implementation. The function 
+\textit{apply}, that is used to send delegation messages as described in previous section, requires all the 
+closures to comply with the NoRef trait as shown in \ref{fig:trustntrustee}. This however limits severly what 
+type of data can be captured by any delegated closure as many frequently used types like strings and vectors 
+contain pointers internally. To get around that \name{} prvides a way to send any data type that can be 
+serialized along with the closure as an extra parameter to the delegated closure. If the programmer makes a 
+mistake and tries to use a closure that has captured a reference for delegation, a custom error message at 
+compile time will inform them what the issue is and direct them to use the serialization method instead.
+
+\subsection{Request size and TCP fallback}
+As describe in \ref{s:del_flow}, the requsts going from a client thread to the same trustee will be batched and 
+on trustee side the requests coming from a single thread will all be contigous in memory. This is achieved by 
+the trustee having a pre-allocated sapce in memory (called requestSlot) for incoming requests from each client 
+thread. This limits how many requests a client thread can send in a single batch depending on how much data is 
+being sent with each request. As an example if each request request captures 32 bytes of data, then along with 
+8 bytes for request header, total request size is 40 bytes. Assuming 1kB requestSlot, one batch can have at 
+most 25 requests. While this allows us to optimize for small requests it also places a hard limit on how much 
+data a request can capture i.e. the size of the requestSlot. To work aound this limit and support larger 
+requests, \name{} uses TCP to send any captured data larger than that separately while the request header goes 
+in the requestSlot as normal. This degrades the performance severly as TCP is much slower than RDMA. We use 
+TCP here instead of RDMA because, as mentioned in \ref{s:rdmaapi}, RDMA needs the memory used to be 
+pre-registered with the NIC. This would also place an upper limit on how much data can be sent using RDMA at 
+once. Since there would be an upper limit anyway and larger requests are not the focus for \name{}, we decided 
+to opt for the simpler design in place at the moment.
+
+\subsection{Request Format}
+\label{s:header}
+
+\subsection{Distributed Refcount}
