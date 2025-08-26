@@ -100,18 +100,49 @@ As describe in \ref{s:del_flow}, the requsts going from a client thread to the s
 on trustee side the requests coming from a single thread will all be contigous in memory. This is achieved by 
 the trustee having a pre-allocated sapce in memory (called requestSlot) for incoming requests from each client 
 thread. This limits how many requests a client thread can send in a single batch depending on how much data is 
-being sent with each request. As an example if each request request captures 32 bytes of data, then along with 
-8 bytes for request header, total request size is 40 bytes. Assuming 1kB requestSlot, one batch can have at 
-most 25 requests. While this allows us to optimize for small requests it also places a hard limit on how much 
-data a request can capture i.e. the size of the requestSlot. To work aound this limit and support larger 
-requests, \name{} uses TCP to send any captured data larger than that separately while the request header goes 
-in the requestSlot as normal. This degrades the performance severly as TCP is much slower than RDMA. We use 
-TCP here instead of RDMA because, as mentioned in \ref{s:rdmaapi}, RDMA needs the memory used to be 
-pre-registered with the NIC. This would also place an upper limit on how much data can be sent using RDMA at 
-once. Since there would be an upper limit anyway and larger requests are not the focus for \name{}, we decided 
-to opt for the simpler design in place at the moment.
+being sent with each request. As an example if each request request captures 32 bytes of captured data, the 
+total request size is 40 bytes. Next section goes into detail about the format of a \name{} delegation request. 
+Assuming 1kB requestSlot, one batch can have at most 25 requests. While this allows us to optimize for small 
+requests it also places a hard limit on how much data a request can capture i.e. the size of the requestSlot. 
+To work aound this limit and support larger requests, \name{} uses TCP to send any captured data larger than 
+that separately while the request header goes in the requestSlot as normal. This degrades the performance 
+severly as TCP is much slower than RDMA. We use TCP here instead of RDMA because, as mentioned in 
+\ref{s:rdmaapi}, RDMA needs the memory used to be pre-registered with the NIC. This would also place an upper 
+limit on how much data can be sent using RDMA at once. Since there would be an upper limit anyway and larger 
+requests are not the focus for \name{}, we decided to opt for the simpler design in place at the moment.
 
 \subsection{Request Format}
 \label{s:header}
+As discussed in the previos section, the number of requests sent in batch depends on the size of the requests 
+plus the size of any headers sent with the request. The necessary parts to process a \name{} request are as 
+follows:
+\begin{itemize}
+	\item The closure. Closures in rust are fat pointers consisting of a vtable that points to where the 
+	code is in the text section along with the size of captured data, and a data pointer that points to 
+	the captured data.
+	\item The pointer to where the property is located on trustee.
+	\item Length of serialized data.
+	\item The captured data.
+	\item Any serialized data.
+\end{itemize}
+
+While we can't avoid sending the captured data, serialized data and the propoerty pointer, \name{} employs 
+some strategies to minimize the information that needs to be sent inside the request slot. As the data pointer 
+within the closure is not going to be valid on a remote machine, there is no need to include that in the request. 
+Since the same binary is running on all the machines in the system, they all have access to any information 
+known at compile time. This includes all of the information in the vtable, provided the vtable pointer. Here, 
+we make the observation that for the vast majority of the runtime of an application, most of the requests in 
+the request slot will be about a single closure or a few closures at most, meaning we can have a small lookup
+table for a few vtable pointers in the request slot instead of including one with every request. Combining that 
+with the start point of data received, the trustee can reconstitute the closure locally, removing the need to 
+send the closure in the request slot. If there are indeed more closures in the request slot than will fit in the 
+lookup table, any extras can be sent in the request slot. This will reduce the data being sent in the common 
+case with minimal overhead, but will be no more expansive in the special case. Similarly if the serialized data 
+has a size known at compile time the trustee already has access to it, so the only time it needs to be sent 
+with the request is if it is not known at compile time. One thing to note here is that we rely on same vtable 
+pointer to be the valid on all of the machines which is not the case normally due to linux address space 
+layout randomization (ASLR), making disabling it a necessity for \name{} to function.
+
+
 
 \subsection{Distributed Refcount}
