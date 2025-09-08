@@ -1,0 +1,16 @@
+num_threads: 2 num_mchines: 5 MOPs: 53.593
+num_threads: 4 num_mchines: 5 MOPs: 107.066
+num_threads: 6 num_mchines: 5 MOPs: 148.510
+num_threads: 8 num_mchines: 5 MOPs: 167.066
+num_threads: 10 num_mchines: 5 MOPs: 153.54
+num_threads: 12 num_mchines: 5 MOPs: 176.232
+num_threads: 14 num_mchines: 5 MOPs: 194.005
+num_threads: 16 num_mchines: 5 MOPs: 171.599
+num_threads: 18 num_mchines: 5 MOPs: 214.531
+num_threads: 20 num_mchines: 5 MOPs: 215.969
+num_threads: 22 num_mchines: 5 MOPs: 261.263
+num_threads: 24 num_mchines: 5 MOPs: 238.734
+num_threads: 26 num_mchines: 5 MOPs: 243.062
+num_threads: 28 num_mchines: 5 MOPs: 290.148
+num_threads: 30 num_mchines: 5 MOPs: 274.12
+num_threads: 32 num_mchines: 5 MOPs: 244.822

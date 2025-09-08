@@ -1,0 +1,5 @@
+num_mchines: 1 num_trustees: 6 num_threads: 28 mops: 21.91
+num_mchines: 2 num_trustees: 6 num_threads: 28 mops: 53.34
+num_mchines: 3 num_trustees: 6 num_threads: 28 mops: 86.64
+num_mchines: 4 num_trustees: 6 num_threads: 28 mops: 120.78
+num_mchines: 5 num_trustees: 6 num_threads: 28 mops: 141.97

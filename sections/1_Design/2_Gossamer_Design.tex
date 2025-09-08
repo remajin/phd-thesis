@@ -95,6 +95,39 @@ serialized along with the closure as an extra parameter to the delegated closure
 mistake and tries to use a closure that has captured a reference for delegation, a custom error message at 
 compile time will inform them what the issue is and direct them to use the serialization method instead.
 
+\subsection{Reference counting for Trusts}
+Trusts in \name{} act as rust smart pointers that own the property, since they can be used to access and 
+modify the property behind them. This means that we need to make sure that when all of the trusts are dropped, 
+the property is also dropped and the associated memory is freed so as not to have memory leakage. To acheive 
+that trusts need to be reference counted, but a naive integer count will not suffice due to a combination of 
+the following two issues.
+
+\begin{itemize}
+	\item \name{} does not support a blocking delegation operation when in the middle of another delegation 
+	request. For example calling \textit{apply} on a trust from within a closure that itself is used for 
+	delegation will cause the system to hang and never finish.
+	\item If the integer used for counting references, let's call it refcount, is incremented and decremented 
+	asynchronously, i.e. with a nonblocking delegation call, it could lead to use after free bugs. Let's 
+	consider the following scenario: Thread A clones a trust with only one reference and sends an async request 
+	to increment its refcount. The cloned trust is then sent to Thread B that drops it, sending another async 
+	request to decrement its refcount. While the requests issued by the same fiber are guaranteed to be 
+	completed in the same order they are issued, there is no such guaranty across multiple threads or even 
+	fibers. It is entirely possible that the decrement request is processed first, making the refcount zero, 
+	which results in the property being dropped. Thread A however still has a valid trust to this property 
+	which it can use, expecting the property to still be available.
+\end{itemize}
+
+Not being able to use async delegation to increment and decrement the refcount leads to not being able to clone 
+a trust from within a delegated context, which can quite restrictive. To get around that, \name{} uses a new 
+way to keep track of how many trusts are active at any time. Each trust is given a unique id at the time of 
+creation, be it a new trust or a clone of an existing one. Instead of just using an integer, \name{} uses a 
+set of these ids associated with each property. Instead of incrementing or decrementing the refcount, clone 
+and drop both issue a delegation request involving a symmetric difference operation. Symmetric difference 
+is defined as adding an element to a set if it is not already a member, and removing it from the set if it is. 
+This way, regardless of the order in which requests originating in clone and drop are processed, the first one 
+will add the trust id to the set and later one will remove it, allowing us to use async delegation for both. 
+This, in turn, enables us to clone a trust within a delegated context.
+
 \subsection{Request size and TCP fallback}
 As describe in \ref{s:del_flow}, the requsts going from a client thread to the same trustee will be batched and 
 on trustee side the requests coming from a single thread will all be contigous in memory. This is achieved by 
@@ -143,6 +176,3 @@ with the request is if it is not known at compile time. One thing to note here i
 pointer to be the valid on all of the machines which is not the case normally due to linux address space 
 layout randomization (ASLR), making disabling it a necessity for \name{} to function.
 
-
-
-\subsection{Distributed Refcount}
