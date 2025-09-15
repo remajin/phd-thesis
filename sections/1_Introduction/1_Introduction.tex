@@ -1,0 +1,35 @@
+\section{Delegation}
+\label{s:intro}
+
+Safe access to shared objects is fundamental to many multi-threaded programs. Conventionally, this is achieved 
+through {\it locking}, or in some cases through carefully designed lock-free data structures, both of which are 
+implemented using atomic compare-and-swap (CAS) operations. By their nature, atomic instructions do not 
+{\it scale} well: atomic instructions must not be reordered with other instructions, often starving part of 
+today's highly parallel CPU pipelines of work until the instruction has retired. This effect is exacerbated 
+when multiple cores are accessing the same object, resulting in the combined effect of frequent cache misses 
+and cores waiting for each other to release the cache line in question, while the atomic instructions prevent 
+them from doing other work.
+
+Delegation \cite{dice2011flath,calciu2013delegation,petrovic2015delegation,fatourou2011combining,hendler2010flat,oyama1999combining,yew1987combining,shalev2006combining,david2013everything,ffwd}, 
+also known as message-passing or light-weight remote procedure calls (LRPC), offers a highly scalable 
+alternative to locking. Here, each shared object\footnote{Here, we use {\it object} to mean a data structure 
+that would be protected by a single lock.} is placed in the care of a single core ({\it trustee} below). Using 
+a shared-memory message passing protocol, other cores (clients) issue requests to the trustee, specifying 
+operations to be performed on the object.
+
+Compared to locking, where threads typically contend for access, and may even suspend execution to wait for 
+access, delegation requests from different clients are submitted to the trustee in parallel and without contention. 
+This dramatically reduces the cost of coordination for congested objects. The operations/critical sections are 
+applied sequentially in both designs: by each thread using locks, or by the trustee using delegation; here 
+delegation may benefit from improved locality at the trustee. Together, this translates to much higher maximum 
+per-object throughput with delegation vs. locking.
+
+However, under medium or low contention, classical delegation struggles to compete with locking: 
+the latency and overhead of request transmission, request processing and response transmission are insignificant 
+compared to the cost of contending for a lock, but can be substantial compared to the cost of acquiring an 
+{\it uncontended} lock. 
+
+In this paper, we take a closer look at current barriers to delegation performance, and propose design 
+improvements that provide excellent delegation performance across a wide range of conditions. 
+
+Moreover, a single client thread may have multiple outstanding requests to one or more trustees, providing both parallelism and transparent batching benefits.
