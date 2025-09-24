@@ -2,3 +2,4 @@ num_server_machines: 1 num_servers: 6 num_io_threads: 2 num_client_threads: 64 m
 num_server_machines: 2 num_servers: 6 num_io_threads: 2 num_client_threads: 64 mops: 4.446
 num_server_machines: 3 num_servers: 6 num_io_threads: 2 num_client_threads: 64 mops: 5.391
 num_server_machines: 4 num_servers: 6 num_io_threads: 2 num_client_threads: 64 mops: 6.018
+num_server_machines: 5 num_servers: 6 num_io_threads: 2 num_client_threads: 64 mops: 6.478

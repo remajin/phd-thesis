@@ -1,0 +1,5 @@
+num_server_machines: 1 num_trustees: 6 num_client_threads: 768 mops: 13.928
+num_server_machines: 2 num_trustees: 6 num_client_threads: 768 mops: 17.836
+num_server_machines: 3 num_trustees: 6 num_client_threads: 768 mops: 48.404
+num_server_machines: 4 num_trustees: 6 num_client_threads: 768 mops: 40.680
+num_server_machines: 5 num_trustees: 6 num_client_threads: 768 mops: 53.884

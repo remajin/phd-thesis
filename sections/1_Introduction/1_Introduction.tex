@@ -28,8 +28,3 @@ However, under medium or low contention, classical delegation struggles to compe
 the latency and overhead of request transmission, request processing and response transmission are insignificant 
 compared to the cost of contending for a lock, but can be substantial compared to the cost of acquiring an 
 {\it uncontended} lock. 
-
-In this paper, we take a closer look at current barriers to delegation performance, and propose design 
-improvements that provide excellent delegation performance across a wide range of conditions. 
-
-Moreover, a single client thread may have multiple outstanding requests to one or more trustees, providing both parallelism and transparent batching benefits.
