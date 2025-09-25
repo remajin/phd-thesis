@@ -1,6 +1,3 @@
-\section{Delegation}
-\label{s:intro}
-
 Safe access to shared objects is fundamental to many multi-threaded programs. Conventionally, this is achieved 
 through {\it locking}, or in some cases through carefully designed lock-free data structures, both of which are 
 implemented using atomic compare-and-swap (CAS) operations. By their nature, atomic instructions do not 
@@ -28,3 +25,13 @@ However, under medium or low contention, classical delegation struggles to compe
 the latency and overhead of request transmission, request processing and response transmission are insignificant 
 compared to the cost of contending for a lock, but can be substantial compared to the cost of acquiring an 
 {\it uncontended} lock. 
+
+The main contributions of this thesis are summarized below:
+\begin{itemize}
+	\item Trust$<$T$>$: a model for efficient, multi-threaded, delegation-based programming with shared 
+	objects leveraging the Rust type system.
+	\item Gossamer: an extension of Trust$<$T$>$ that enables a normal delegation based application to run 
+	on and utilize the resources of a rack with minimal changes to application code.
+\end{itemize}
+
+The rest of this chapter introduces both of these and then outlines the rest of this dissertation.

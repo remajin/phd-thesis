@@ -1,0 +1,37 @@
+\section{\trust{}}
+We present \trust{} (pronounced {\it trust-tee}), a programming abstraction and runtime system which 
+provides safe, high-performance access to a shared object (or $property$) of type $T$.Briefly, a \trust{} 
+provides a family of functions of the form: $$apply(c:FnOnce(\&mut~T)\rightarrow U)\rightarrow U,$$ which 
+causes the closure $c$ to be safely applied to the property (of type $T$), and returns the return value 
+(of type $U$) of the closure to the caller. Here, $FnOnce$ denotes a category of Rust closure types, and 
+$\&mut$ denotes a mutable reference. (A matching set of non-blocking functions is also provided, which 
+instead executes a callback closure with the return value.)
+
+Critically, access to the property is only available through the \trust{} API, which taken together with 
+the Rust ownership model and borrow checker eliminates any potential for race conditions, given a correct 
+implementation of {\it apply}. Our implementation of \trust{} uses pure delegation. However, the design of 
+the API also permits lock-based implementations, as well as hybrids. 
+
+Beyond the API, \trust{} provides a runtime for scheduling request transmission and processing, as well as 
+lightweight user threads ($fibers$ below). This allows each OS thread to serve both as a Trustee, processing 
+incoming requests, and a client. Multiple outstanding requests can be issued either by concurrent 
+synchronous fibers or an asynchronous programming style.  
+%While \trust{} provides some value in isolation, its full power is only apparent when combined with a runtime, providing additional concurrency, request scheduling and more. Now, depending on the current context as well as compile-time settings, the call to {\it apply()} may result in a very wide range of outcomes including (a) accessing the property directly, (b) acquiring a lock, then accessing the property, (c) sending a delegation request to a different thread, which in turn accesses the property, and/or (d) suspending the current thread and resuming another. 
+
+% The primary contributions of this paper are as follows:
+
+
+% \begin{itemize}
+%   \setlength{\itemsep}{0em}
+% 	\item Trust$<$T$>$: a model for efficient, multi-threaded, delegation-based programming with shared objects leveraging the Rust type system.
+% 	\item A new delegation channel design, for delegating a variable number of arbitrary-sized and extremely flexible requests per message. 
+% 	\item Two efficient mechanisms for supporting nested delegation requests, a key missing ingredient in previous work on delegation.
+% 	%\item A hybrid delegation/locking design, combining the excellent scalability of delegation with the low latency of uncontended locks. ????????
+% 	%\item A delegation channel, featuring shared/lossy request lines, drastically reducing server polling overhead. ????????
+% 	%\item The design and implementation of many standard synchronization primitives without the use of atomic instructions. 
+% 	\item Performance improvements up to 22$\times$ vs. the best locks on congested micro-benchmarks
+% 	\item Delegation performance consistently matching uncongested locks, given sufficient available parallelism
+% 	\item Memcached performance improvements of up to 9$\times$ on benchmarking workloads vs. stock {\tt memcached}.
+% 	%\item An implementation which matches the efficiency of prior work on delegation with mutable global variables, in C.
+% 	%\item Evaluation of \trust{} vs. locking on a range of applications, ranging from microbenchmarks to production software. 
+% \end{itemize}

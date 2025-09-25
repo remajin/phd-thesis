@@ -1,0 +1,20 @@
+\section{Gossamer}
+
+This work extends \trust{} to build a rack-wide programming model. \name{} aims to provide a high 
+performance and easy to program in, framework that can take advantage of the increased resources that in a 
+rack. Using the API provided by \name{} programmers will be able to code their applications 
+like a normal delegation application with very few changes. Most of the distribution of work will be handled 
+behind the scenes, but programmers will have the option to customize where the worker threads should run 
+and where data should be held in the rack if they so choose.
+
+One inherent problem that restricts performance in distributed settings is the higher latency caused by 
+network traversal. \name{} overcomes that by using RDMA along with taking advantage of fibers. RDMA provides 
+sub-micro second one way latency that is comparable to that of permanent storage on single machine. While 
+RDMA solves the problem with high latency, it does not scale well with increasing number of connections per 
+machine. To solve this \name{} establishes only one connection per hardware thread for each remote machine 
+and uses many fibers to utilize the available throughput to full extent.
+
+\name{} implements delegation in a way that applications will have the illusion of running on the same 
+machine. This can be done by mapping the server memory to a client's address space using RDMA. This means 
+that various things that are normally only possible in shared memory can be done in a distributed setting. 
+Some examples include spawning a fiber, joining a fiber and accessing a shared object.
