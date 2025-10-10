@@ -1,6 +1,23 @@
 \chapter{Gossamer}
 \label{gossamer}
 
+Delegation has a programming model that works very well for distributed computing. Like distributed systems, 
+delegation does not have to rely on shared memory for operations. This makes it possible to write an 
+application that is designed for a single machine delegated system and then adapt it for a distributed 
+delegation system without significant changes to application code.
+  
+We describe the design and implementation of \name{}, a new distributed programming model that uses delegation 
+to distribute computing work. We use RDMA for communication between machines as it provides both low latency 
+and high throughput. Moreover, RDMA offers mechanism to write in a remote machine's memory without the 
+involvement of CPU on that machine. This is especially useful when implementing a programming model that can 
+seamlessly work on both a single machine and multiple machines.
+  
+\name{} allows developers to write applications that span multiple machines as if they would be running on a 
+single machine. Programmers can use the API provided by \name{} to delegate a rust closure that can even be 
+executed on a remote machine. \name{} uses light weight user-space threads called \textit{fibers} for 
+multi-threading on both machines. In our evaluation, we compare the performance of applications running 
+delegation over RDMA that of applications running on a single machine, while using the same number of CPUs.
+
 % \setcounter{table}{0}
 \input{sections/3_Gossamer/1_rdma}
 \input{sections/3_Gossamer/2_Gossamer_Design}

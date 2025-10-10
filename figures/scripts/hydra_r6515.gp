@@ -11,7 +11,8 @@ set xrange [0:*]
 
 # a = 0
 # cdf(x) = (a = (x+a),a/500)
-plot "~/thesis/figures/data/hydra_r6515.txt" u 2:8 with linespoint dashtype 1 pointtype 1 notitle,\
+plot "~/thesis/figures/data/hydra_r6515.txt" u 2:8 with linespoint dashtype 1 pointtype 1 title "hydra server sharded",\
+	"~/thesis/figures/data/client_sharded_r6515.txt" u 2:8 with linespoint dashtype 1 pointtype 2 title "client sharded",\
 	# "nopt.txt" u ($2*$4):6 with linespoint title "quadratic number of QPs",\
 	# "erpc/erpc_t28_b7.txt" u 1:4 with linespoint title "b7"
 	

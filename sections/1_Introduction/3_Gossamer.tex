@@ -1,20 +1,26 @@
 \section{Gossamer}
 
-This work extends \trust{} to build a rack-wide programming model. \name{} aims to provide a high 
-performance and easy to program in, framework that can take advantage of the increased resources available in a 
-rack. Using the API provided by \name{} programmers will be able to code their applications 
-like a normal delegation application with very few changes. Most of the distribution of work is handled 
-behind the scenes, but programmers have the option to customize where the worker threads should run 
-and where data should be held in the rack if they so choose.
+Shared memory enables programmers to write multi-threaded applications, making them perfrom better but also increase 
+the programming complexity. The same is true when scaling applications from a single machine to a distributed 
+setting. Here, lack of shared memory means that not all of the compute units (threads/processes) can access all 
+of the shared objects, which also comlicates the synchronization mechanisms. Disributed applications, historically, 
+rely on message passing to share data. Remote Procedural Calls (RPCs) is one such framework where threads can send 
+requests to where data is located and receive responses upon completion \cite{Birrell:1984:IRP:2080.357392,Srinivasan:1995:RRP:RFC1831,Bershad:1989:LRP:74850.74861,6702617,Adamson2016,Talpey2010,4228186,brabson2011method,shyam2015managing,merrick2015xml,Soumagne2013MercuryER}.
+This is very similar to how delegation works.
+
+\name{} extends \trust{} to build a rack-wide programming model. \name{} aims to provide a high performance and 
+easy to program in, framework that can take advantage of the increased resources available in a rack. Using the 
+API provided by \name{} programmers can code their applications like a normal delegation application with very 
+few changes and the applications have the illusion of running on the same machine. Most of the distribution of 
+work is handled behind the scenes, but programmers have the option to customize where the worker threads should 
+run and where data should be held in the rack if they so choose. This can be acheived by mapping the server memory 
+to a client's address space using RDMA. This means that various things that are normally only possible in shared 
+memory can be done in a distributed setting. Some examples include spawning a fiber, joining a fiber and accessing 
+a shared object.
 
 One inherent problem that restricts performance in distributed settings is the higher latency caused by 
 network traversal. \name{} overcomes that by using RDMA along with taking advantage of fibers. RDMA provides 
 sub-micro second one way latency that is comparable to that of permanent storage on single machine. While 
 RDMA solves the problem with high latency, it does not scale well with increasing number of connections per 
 machine. To solve this \name{} establishes only one connection per hardware thread for each remote machine 
-and uses many fibers to utilize the available throughput to full extent.
-
-\name{} implements delegation in a way that applications will have the illusion of running on the same 
-machine. This can be done by mapping the server memory to a client's address space using RDMA. This means 
-that various things that are normally only possible in shared memory can be done in a distributed setting. 
-Some examples include spawning a fiber, joining a fiber and accessing a shared object.
+and uses many fibers to utilize the available throughput to full extent. 

@@ -15,8 +15,15 @@ the API also permits lock-based implementations, as well as hybrids.
 Beyond the API, \trust{} provides a runtime for scheduling request transmission and processing, as well as 
 lightweight user threads ($fibers$ below). This allows each OS thread to serve both as a Trustee, processing 
 incoming requests, and a client. Multiple outstanding requests can be issued either by concurrent 
-synchronous fibers or an asynchronous programming style.  
-%While \trust{} provides some value in isolation, its full power is only apparent when combined with a runtime, providing additional concurrency, request scheduling and more. Now, depending on the current context as well as compile-time settings, the call to {\it apply()} may result in a very wide range of outcomes including (a) accessing the property directly, (b) acquiring a lock, then accessing the property, (c) sending a delegation request to a different thread, which in turn accesses the property, and/or (d) suspending the current thread and resuming another. 
+synchronous fibers or an asynchronous programming style. \trust{} achieves performance improvements up to 
+22$\times$ vs. the best locks on congested micro-benchmarks and up to 9$\times$ on benchmarking workloads vs. 
+stock {\tt memcached}.
+% While \trust{} provides some value in isolation, its full power is only apparent when combined with a runtime, 
+% providing additional concurrency, request scheduling and more. Now, depending on the current context as well as 
+% compile-time settings, the call to {\it apply()} may result in a very wide range of outcomes including (a) 
+% accessing the property directly, (b) acquiring a lock, then accessing the property, (c) sending a delegation 
+% request to a different thread, which in turn accesses the property, and/or (d) suspending the current thread and 
+% resuming another. 
 
 % The primary contributions of this paper are as follows:
 
