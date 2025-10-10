@@ -4,7 +4,7 @@ all: plots thesis
 
 PLOTS = erpc_vs_gsm_loaded_latency_t28 erpc_vs_gsm_loaded_latency_t56 erpc_throughput_vs_latency_batch_size \
 	hydra_redis_quads g500_vs_gsm_n26_time_xl170 g500_vs_gsm_size_time_xl170_t160 g500_vs_gsm_size_time_cst_quads_t112 \
-	hydra_r6515 qp_scaling_6m_r6515 qp_scaling_5m_r6515
+	hydra_r6615 qp_scaling_6m_r6615 qp_scaling_5m_r6615
 	
 SCRIPTS_DIR = figures/scripts
 
