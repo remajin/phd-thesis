@@ -1,0 +1,58 @@
+\section{Background and Motivation}
+\label{st:background}
+
+Locking suffers from a well-known scalability problem: as the number of contending cores grows, cores spend 
+more and more of their time in contention, and less doing useful work. Consider a classical, but idealized 
+lock, in which there are no efficiency losses due to contention. Here, the {\it sequential} cost of each 
+critical section is the sum of (a) any wait for the lock to be released, (b) the cost of acquiring the lock, 
+(c) executing the critical section, and (d) releasing the lock. Not counting any re-acquisitions on the same 
+core, this must be at minimum one cache miss per critical section, in sequential cost. To make matters worse, 
+this cache miss is incurred by an atomic instruction, effectively stallign the CPU until the cache miss is 
+resolved (and in the case of a spinlock, until the lock is acquired).
+
+Two main solutions to this problem exist. First, where the data structure permits, fine-grained locking can be 
+used to split the data structure into multiple independently locked objects, thus increase parallelism, reduce 
+lock contention and wait times. With the data structure split into sufficiently many objects, and {\it 
+accesses distributed uniformly}, a fine-grained locking approach tends to offer the best available performance. 
+
+The second solution is various forms of delegation, where one thread has custody of the object, and applies 
+critical sections on behalf of other threads. Ideally, this minimizes the sequential cost of each critical 
+section without changing the data structure: there are no sequential cache misses, ideally no atomic 
+instructions, but of course the critical sections themselves still execute sequentially. 
+
+{\it Combining} \cite{fatourou2012revisiting,hendler2010flat,dice2011flath,fatourou2011combining,oyama1999combining,yew1987combining,shalev2006combining}, 
+is a flavor of delegation in which threads temporarily take on the role of {\it combiner}, performing queued 
+up critical sections for other threads. Combining can scale better than locking in congested settings, but 
+does not offer the full benefits of delegation as it makes heavy use of atomic operations, and moves data 
+between cores as new threads take on the {\it combiner} role. Most recently, TCLocks \cite{tclocks} offers a 
+fully transparent combining-based replacement for locks, by capturing and restoring register contents, and 
+automatically pre-fetching parts of the stack. TClocks claims substantial benefits for extremely congested 
+locks, and the backward compatibility is of course quite attractive. However, a cursory evaluation in 
+\S\ref{s:eval} reveals that TCLocks substantially underperform regular locks beyond extremely high contention 
+settings, and never approaches \trust{} performance.
+
+%With the exception of {\it combining}, a form of delegation with temporary custody,
+Beyond {\it combining}, delegation has primarily been explored in proof-of-concept or one-off form, with 
+relatively immature programming abstractions. We propose \trust{}, a full-fledged delegation API for the Rust 
+language, which presents delegation in a type-safe and familiar form, while substantially outperforming the 
+fastest prior work on delegation. 
+
+While delegation offers much higher throughput for congested shared objects, it does suffer higher latency 
+than locking in uncongested conditions. To hide this latency, and make delegation competitive in uncongested 
+settings, \trust{} exposes additional concurrency to the application via asynchronous delegation requests 
+and/or light-weight, delegation-aware user threads ({\it fibers}). 
+
+Lacking modularity is another common criticism of delegation: in FFWD \cite{ffwd}, an early delegation design, 
+delegated functions must not perform any blocking operations, which includes any further delegation calls. In 
+\trust{}, this constraint remains for the common case, as this typically offers the highest efficiency. However, 
+\trust{} offers several options for more modular operation. First, asynchronous/non-blocking delegation requests 
+are not subject to this constraint - these requests may be safely issued in any context. Second, leveraging 
+our light-weight user threads, we offer the option of supporting blocking calls in delegated functions, on an 
+as-needed basis.
+
+Finally, prior work on delegation has required one or more cores to be dedicated as delegation servers. While 
+\trust{} offers dedicated cores as one option, the \trust{} runtime has every core act as a delegation server, 
+again leveraging light-weight user threads. Beyond easing application development and improving load balancing, 
+having a delegation server on every core allows us to implement \trust{} without any use of atomic instructions, 
+instead relying on delegation for all inter-thread communication. Beyond potential performance advantages, 
+this also makes \trust{} applicable to environments where atomic operations are unavailable. 
