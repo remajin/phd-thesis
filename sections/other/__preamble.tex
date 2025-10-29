@@ -21,6 +21,10 @@
 \usepackage{graphicx}
 \usepackage{pifont}
 \usepackage{subcaption}
+\usepackage{listings-rust}
+\usepackage{hyperref}
+\usepackage{pgf}
+\usepackage{fancyvrb}
 
 \newglossarystyle{clong}{%
  \renewenvironment{theglossary}%
@@ -79,5 +83,7 @@
 % one or two other commands
 \def\newfont#1#2{\@ifdefinable #1{\font #1=#2\relax}}
 \def\symbol#1{\char #1\relax}
+
+\lstset{language=Rust, style=Boxed}
 
 \makeglossaries

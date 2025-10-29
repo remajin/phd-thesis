@@ -2,7 +2,7 @@
 \label{s:nesting}
 The \trust{} API supports a variety of ways to delegate work, some of which we elide due to space constraints. Below, we describe the core functions in detail. For a full API review, see the technical report and API documentation \cite{trust_techreport}. 
 
-\subsection{{\tt apply()}: synchronous delegation}
+\subsection{\texttt{apply()}: synchronous delegation}
 \begin{lstlisting}[numbers=none]
 apply(c: FnOnce(&mut T)->U)->U
 \end{lstlisting}
@@ -11,12 +11,13 @@ apply(c: FnOnce(&mut T)->U)->U
 It takes a closure of the form {\tt |\&mut T| \{\}}, where {\tt T} is the type of the property. 
 If the closure has a return value, apply returns this value to the caller. 
 
-Importantly, {\tt apply()} is synchronous, suspending the current fiber until the operation has completed.
+Importantly, \texttt{apply()} is synchronous, suspending the current fiber until the operation has completed.
 Often, the best performance with {\tt apply()} is achieved when running multiple application fibers per thread. 
 Then, while one fiber is waiting for its response, another may productively use the CPU.
 
-\subsection{{\tt apply\_then()}: non-blocking delegation}
+\pagebreak
 
+\subsection{\texttt{apply\_then()}: non-blocking delegation}
 \begin{lstlisting}[numbers=none]
   apply_then(c: FnOnce(&mut T)->U, 
           then: FnOnce(U))
@@ -32,7 +33,7 @@ let ct = trustee.entrust(17);           // create trust for shared counter set t
 ct.apply_then(|c| { *c+=1; *c },         // increment counter and return its value
               |val| assert!(val==18));  // check return value once received
 \end{lstlisting}
-\caption{Asynchronous version of the example in Fig. \ref{f:minimal}.
+\caption{Asynchronous version of the example in \ref{f:minimal}.
 The second closure runs on the client, once the result of the first closure is received from the trustee. }
 \label{f:minimal_async}
 \end{figure*}
@@ -40,7 +41,7 @@ The second closure runs on the client, once the result of the first closure is r
 Frequently, asynchronous (or non-blocking) application logic can allow the programmer to express additional concurrency either without running multiple fibers, or in combination with multiple fibers. 
 Here, {\tt apply\_then()} returns to the caller without blocking, and does not produce a return value.
 Instead, the second closure, {\tt then}, is called with the return value from the delegated closure, once it has been received. 
-Figure \ref{f:minimal_async} demonstrates the use of {\tt apply\_then()} following the pattern of Figure \ref{f:minimal}.
+\ref{f:minimal_async} demonstrates the use of {\tt apply\_then()} following the pattern of \ref{f:minimal}.
 
 The {\tt then}-closure is a very powerful abstraction, as it too is able to capture variables from the local environment, 
 allowing it to perform tasks like adding the return value (once available) to a vector accessible to the caller. 
@@ -50,7 +51,7 @@ the programmer to appropriately manage object lifetime either through scoping or
 %Similar to {\tt apply()}, the request is appended to the local pending request queue, and transmitted once a request line becomes available. 
 Importantly, as {\tt apply\_then()} does not suspend the caller, it may freely be called from within delegated context. 
 
-\subsection{{\tt launch()}: apply in a trustee-side fiber}
+\subsection{\texttt{launch()}: apply in a trustee-side fiber}
 \begin{lstlisting}[numbers=none]
   launch(c: FnOnce(&mut T)->U)->U
   launch_then(c: FnOnce(&mut T)->U, 
@@ -85,7 +86,7 @@ Once the temporary fiber resumes and completes execution of the closure, it then
 % In general, because {\tt launch()} incurs higher overhead than {\tt apply()} (see \S\ref{s:eval_launch} for details), it is better used only as needed.
 % That said, a developer who is eager to avoid any chance of a runtime assertion failure can simply substitute every {\tt apply()} call in their code with a {\tt launch()} call.
 
-\subsubsection{Atomicity and {\tt launch()}}
+\subsubsection{Atomicity and \texttt{launch()}}
 That said, a complicating factor with blocking closures executed by {\tt launch()} is that without further protection, property accesses are no longer guaranteed to be atomic:
 while the newly created fiber is suspended, another delegation request may be applied to the property, resulting in a race condition. 
 To avoid this risk, {\tt launch()} is implemented only for {\tt Trust<Latch<T>{>}}.

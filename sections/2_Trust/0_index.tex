@@ -1,20 +1,20 @@
 \chapter{\trust{}}
 \label{trust}
 
-We present \name{}, a general, type- and memory-safe alternative to locking in concurrent programs. Instead of 
+We present \trust{}, a general, type- and memory-safe alternative to locking in concurrent programs. Instead of 
 synchronizing multi-threaded access to an object of type T with a lock, the programmer may place the object in 
-a \name{}. The object is then no longer directly accessible. Instead a designated thread, the object's {\it 
-trustee}, is responsible for applying any requested operations to the object, as requested via the \name{} API.
+a \trust{}. The object is then no longer directly accessible. Instead a designated thread, the object's {\it 
+trustee}, is responsible for applying any requested operations to the object, as requested via the \trust{} API.
  
-Locking is often said to offer a limited throughput {\it per lock}. \name{} is based on delegation, a 
+Locking is often said to offer a limited throughput {\it per lock}. \trust{} is based on delegation, a 
 message-passing technique which does not suffer this per-lock limitation. Instead, per-object throughput is 
 limited by the capacity of the object's trustee, which is typically considerably higher.
  %giving delegation a theoretical advantage when performance is constrained by a limited number of locks.
  %On the other hand, the latency and overhead of delegation can be higher than that of locking, especially for uncontended locks. 
  
-Our evaluation shows \name{} consistently and considerably outperforming locking where lock contention exists, 
+Our evaluation shows \trust{} consistently and considerably outperforming locking where lock contention exists, 
 with up to 22$\times$ higher throughput in microbenchmarks, and 5--9 $\times$ for a home grown key-value store, 
-as well as {\tt memcached}, in situations with high lock contention. Moreover, \name{} is competitive with 
+as well as {\tt memcached}, in situations with high lock contention. Moreover, \trust{} is competitive with 
 locks even in the absence of lock contention. 
 
 % \setcounter{table}{0}
