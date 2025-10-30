@@ -1,0 +1,19 @@
+set  terminal "pdfcairo" enhanced size 6,4 mono
+set out "~/thesis/figures/plots/kv_r6615_ycsbc.pdf"
+set ylabel "throughput (MOPs)" enhanced
+set xlabel "number of machines"
+set key horizontal outside
+set yrange [0:*]
+set xrange [0:*]
+# set logscale y 2
+#set style data histogram
+#set style histogram clustered
+
+# a = 0
+# cdf(x) = (a = (x+a),a/500)
+plot "~/thesis/figures/data/hydra_r6615_ycsbc_u.txt" u 2:8 with linespoint dashtype 1 pointtype 1 title "hydra server sharded",\
+	"~/thesis/figures/data/redis_r6615_ycsbc_u.txt" u 2:10 with linespoint dashtype 1 pointtype 2 title "redis",\
+	"~/thesis/figures/data/redis_r6615_ycsbc_u.txt" u 2:($10*11.8) with lines dashtype 2 title "redis hypothetical",\
+	# "nopt.txt" u ($2*$4):6 with linespoint title "quadratic number of QPs",\
+	# "erpc/erpc_t28_b7.txt" u 1:4 with linespoint title "b7"
+	

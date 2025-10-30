@@ -1,0 +1,8 @@
+num_server_machines: 1 num_servers: 6 num_client_threads: 256 num_io_threads: 2 mops: 4.326
+num_server_machines: 2 num_servers: 6 num_client_threads: 256 num_io_threads: 2 mops: 6.210
+num_server_machines: 3 num_servers: 6 num_client_threads: 256 num_io_threads: 2 mops: 7.261
+num_server_machines: 4 num_servers: 6 num_client_threads: 256 num_io_threads: 2 mops: 7.871
+num_server_machines: 5 num_servers: 6 num_client_threads: 256 num_io_threads: 2 mops: 8.421
+num_server_machines: 6 num_servers: 6 num_client_threads: 256 num_io_threads: 2 mops: 8.876
+num_server_machines: 7 num_servers: 6 num_client_threads: 256 num_io_threads: 2 mops: 9.275
+num_server_machines: 8 num_servers: 6 num_client_threads: 256 num_io_threads: 2 mops: 9.673

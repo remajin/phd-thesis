@@ -1,5 +1,5 @@
 set  terminal "pdfcairo" enhanced size 6,4 mono
-set out "~/thesis/figures/plots/qp_scaling_5m_r6515.pdf"
+set out "~/thesis/figures/plots/qp_scaling_5m_r6615.pdf"
 set ylabel "throughput (MOPs)" enhanced
 set xlabel "number of threads"
 set key horizontal outside

@@ -1,0 +1,11 @@
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 182.66 sum: 3200000000 calc: 3200000000 X: false rack_size: 2
+kthread_count: 48 trustee_count 48 var_count: 48 MOPs: 296.31 sum: 4800000000 calc: 4800000000 X: false rack_size: 3
+kthread_count: 64 trustee_count 64 var_count: 64 MOPs: 408.81 sum: 6400000000 calc: 6400000000 X: false rack_size: 4
+kthread_count: 80 trustee_count 80 var_count: 80 MOPs: 512.17 sum: 8000000000 calc: 8000000000 X: false rack_size: 5
+kthread_count: 96 trustee_count 96 var_count: 96 MOPs: 622.03 sum: 9600000000 calc: 9600000000 X: false rack_size: 6
+kthread_count: 112 trustee_count 112 var_count: 112 MOPs: 746.69 sum: 11200000000 calc: 11200000000 X: false rack_size: 7
+kthread_count: 128 trustee_count 128 var_count: 128 MOPs: 851.74 sum: 12800000000 calc: 12800000000 X: false rack_size: 8
+kthread_count: 144 trustee_count 144 var_count: 144 MOPs: 956.94 sum: 14400000000 calc: 14400000000 X: false rack_size: 9
+kthread_count: 160 trustee_count 160 var_count: 160 MOPs: 1061.39 sum: 16000000000 calc: 16000000000 X: false rack_size: 10
+kthread_count: 176 trustee_count 176 var_count: 176 MOPs: 1182.15 sum: 17600000000 calc: 17600000000 X: false rack_size: 11
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 1268.51 sum: 19200000000 calc: 19200000000 X: false rack_size: 12

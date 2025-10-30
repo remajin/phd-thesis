@@ -2,9 +2,9 @@ extensions_to_clean := out aux log bbl blg fls fdb_latexmk glg gls lof glo glsde
 
 all: plots thesis
 
-PLOTS = erpc_vs_gsm_loaded_latency_t28 erpc_vs_gsm_loaded_latency_t56 erpc_throughput_vs_latency_batch_size \
-	hydra_redis_quads g500_vs_gsm_n26_time_xl170 g500_vs_gsm_size_time_xl170_t160 g500_vs_gsm_size_time_cst_quads_t112 \
-	hydra_r6615 qp_scaling_6m_r6615 qp_scaling_5m_r6615
+PLOTS = erpc_vs_gsm_loaded_latency_t28 erpc_vs_gsm_loaded_latency_t56 echo_tput_r6615 \
+	sssp_threads_n26_r6615 sssp_threads_n27_r6615 sssp_size_r6615 kv_r6615_ycsbc kv_r6615_ycsbd \
+	qp_scaling_6m_r6615 qp_scaling_5m_r6615
 	
 SCRIPTS_DIR = figures/scripts
 
