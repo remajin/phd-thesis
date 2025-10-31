@@ -78,7 +78,7 @@ Specifically, it affects modularity, as a library function that blocks internall
 \end{figure*}
 
 To address this, without sacrificing the performance of the more common case, we provide a convenience function: {\tt launch()}, which offers all the same functionality as {\tt apply()}, but without the blocking restriction.
-Figure \ref{f:launch} describes {\tt launch()} from an implementation standpoint. {\tt launch()} creates a temporary fiber on the trustee's thread, which runs the closure. If this fiber is suspended, the client is notified, and the trustee continues to serve the next request. 
+\ref{f:launch} describes {\tt launch()} from an implementation standpoint. {\tt launch()} creates a temporary fiber on the trustee's thread, which runs the closure. If this fiber is suspended, the client is notified, and the trustee continues to serve the next request. 
 Once the temporary fiber resumes and completes execution of the closure, it then delivers the return value and resumes the client fiber via a second delegation call. Thus, if a delegated closure fails the runtime check for blocking calls, the developer can fix this by replacing the {\tt apply()} call, with a {\tt launch()} call. 
 
 % The Rust type system does not let us statically detect whether a closure needs to be delegated with {\tt launch()}. Detecting it at runtime is trivial. 

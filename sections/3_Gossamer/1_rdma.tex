@@ -9,7 +9,9 @@ results presented in this paper are obtained by using RoCE.
 \subsection{RDMA API}
 \label{s:rdmaapi} 
 RDMA hosts communicate using queue pairs (QPs) that consist of a send queue and a receive queue, and are 
-maintained by the NIC. Applications post operations to these QPs by using functions called \textit{verbs}. 
+maintained by the NIC. Applications post operations to these QPs by using functions called \textit{verbs}.
+Each queue can be associated with a completion queue, that can be polled to learn the status of posted 
+operations. The completion queue can be shared between both parts of the QP. 
 For remote access the remote machine first needs to register a memory region with the NIC. The NIC driver 
 pins this region in physical memory. The address and a key related to this region then needs to be exchanged 
 between the machines out of band (i.e. without using RDMA). After this exchange, the remote memory can be 
@@ -31,8 +33,20 @@ communicate with many QPs. For reliable transport NIC uses acknowledgments to gu
 return an error code on failure, while unreliable transport does not provide any such guarantee. InfiniBand 
 and RoCE use lossless link layer, so even in case of unreliable transports, losses are pretty rare and happen 
 because of bit error or link failure. In case of connected transport a failure will break the connection. Not 
-all transports provide all of the verbs. Table \ref{tab:rdma} gives an overview of transport types and the 
+all transports provide all of the verbs. \ref{tab:rdma} gives an overview of transport types and the 
 verbs they support. Current implementations of RDMA only provide reliable connected (RC), unreliable 
 connected (UC) and unreliable datagram.
+
+The meaning of a success status while polling a completion queue depends on the type of transport the related
+send/receive queues are using. A work completion is generated for all receive requests and added to the 
+completion queue. For send requests the work completion is only generated if the signaled bit was set to true
+in the work request or the send request ended with an error. In case of reliable transport, a success for
+send requests indicates that the data has been written to the remote machine's memory. For unreliable 
+transport however, a success only means that the local buffers can be reused safely, with no indiation of 
+the remote memory's status. A successful work completion also indicates that any unsignaled work posted 
+earlier has finished successfully \cite{pollcq}. \name{} uses RC QPs to ensure any data loss in the network is caught.
+We also use the cumulative nature of work completion successes to our advantage by not using signaled send 
+for every RDMA write and only having a signaled send after 1000 unsignaled sends. This allows us to cut down 
+on time spent while polling the completion queue.
 
 \input{tables/rdma_tab}

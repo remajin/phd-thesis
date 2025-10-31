@@ -1,0 +1,12 @@
+Threads: 192 MOPs: 2921.040621 req_size: 4
+Threads: 192 MOPs: 2533.014947 req_size: 8
+Threads: 192 MOPs: 1430.082379 req_size: 16
+Threads: 192 MOPs: 929.228595 req_size: 32
+Threads: 192 MOPs: 513.953021 req_size: 64
+Threads: 192 MOPs: 226.848461 req_size: 128
+Threads: 192 MOPs: 131.844588 req_size: 256
+Threads: 192 MOPs: 68.310142 req_size: 512
+Threads: 192 MOPs: 30.800228 req_size: 960
+Threads: 192 MOPs: 29.266464 req_size: 1024
+Threads: 192 MOPs: 17.157686 req_size: 2048
+Threads: 192 MOPs: 4.521412 req_size: 4096

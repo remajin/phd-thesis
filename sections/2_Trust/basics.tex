@@ -62,7 +62,7 @@ assert!(*cm.lock()? == 19);
   \caption{Minimal multi-threaded \trust{} example. Reference counting ensures that the property remains in memory until the last \trust{} referencing the property drops. }
 \end{figure*}
 
-In the example in Figure \ref{f:minimal_threads} the counter is instead incremented by two different threads.
+In the example in \ref{f:minimal_threads} the counter is instead incremented by two different threads.
 Here, the {\tt clone()} call on {\tt ct} (line 2) clones the trust, but not the property; instead a reference count is incremented for the shared property, analogous to {\tt Arc::clone()}.
   On line 3, a newly spawned thread takes ownership of {\tt ct2}, in the Rust sense of the word, then uses this to apply a closure (line 4).
   When the thread exits, {\tt ct2} is dropped, decrementing the reference count, by means of a delegation request.

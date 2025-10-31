@@ -129,6 +129,7 @@ will add the trust id to the set and later one will remove it, allowing us to us
 This, in turn, enables us to clone a trust within a delegated context.
 
 \subsection{Request size and TCP fallback}
+\label{s:tcp_fallback}
 As describe in \ref{s:del_flow}, the requsts going from a client thread to the same trustee will be batched and 
 on trustee side the requests coming from a single thread will all be contigous in memory. This is achieved by 
 the trustee having a pre-allocated sapce in memory (called requestSlot) for incoming requests from each client 
@@ -138,14 +139,17 @@ total request size is 40 bytes. Next section goes into detail about the format o
 Assuming 1kB requestSlot, one batch can have at most 25 requests. While this allows us to optimize for small 
 requests it also places a hard limit on how much data a request can capture i.e. the size of the requestSlot. 
 To work aound this limit and support larger requests, \name{} uses TCP to send any captured data larger than 
-that separately while the request header goes in the requestSlot as normal. This degrades the performance 
+that separately, while the request header goes in the requestSlot as normal. This degrades the performance 
 severly as TCP is much slower than RDMA. We use TCP here instead of RDMA because, as mentioned in 
 \ref{s:rdmaapi}, RDMA needs the memory used to be pre-registered with the NIC. This would also place an upper 
 limit on how much data can be sent using RDMA at once. Since there would be an upper limit anyway and larger 
 requests are not the focus for \name{}, we decided to opt for the simpler design in place at the moment.
 
-\subsection{Request Format}
+\subsection{Request/Response Slot Format}
 \label{s:header}
+
+\input{figures/req_slot}
+
 As discussed in the previos section, the number of requests sent in batch depends on the size of the requests 
 plus the size of any headers sent with the request. The necessary parts to process a \name{} request are as 
 follows:
@@ -174,5 +178,66 @@ case with minimal overhead, but will be no more expensive in the special case. S
 has a size known at compile time the trustee already has access to it, so the only time it needs to be sent 
 with the request is if it is not known at compile time. One thing to note here is that we rely on same vtable 
 pointer to be the valid on all of the machines which is not the case normally due to linux address space 
-layout randomization (ASLR), making disabling it a necessity for \name{} to function.
+layout randomization (ASLR), making disabling it a necessity for \name{} to function.\\
 
+Similarly, the responses for all of the requests in a request slot are batched and written to the client's 
+memory with a single RDMA write. Unlike a request however, the size of a response is not always known whe 
+submitting a request. While the known size of requests allows us to pack as many requests in a request slot
+as would fit, it can lead to situations where not all of the responses will fit in a single response slot. 
+Based on this observation, the responses are divided in two types.
+
+\begin{itemize}
+	\item Statically known sized responses. Reffered to as fixed size response here.
+	\item Dynamically sized responses.
+\end{itemize}
+
+Both of these can be further divided into responses that are small and can fit inside the slot or large and
+cannot fit inside the slot. For fixed size and small responses, the response can be sent inline without any
+metadata. For dynamically sized small responses, the size of the response is accompanied with them. For large
+responses, both fixed an dynamically sized, the response is sent using TCP and the pointer to the remote 
+buffer is sent in the response slot. In addition, if the response size is zero and statically known, then 
+nothing is sent in the slot. \ref{fig:req_slot} shows the format for both the request and response 
+slots.\\
+
+In addition to the reqest/response, the slots also contain some metadata. They both contain a ready bit and
+an offset, with the request slot containing a few more things. The ready bit is ther to let the other side 
+know of a new request or response. It has to be at the end to ensure that when a client or trustee sees the
+ready bit the rest of the slot has already been written. This is necessary because RDMA writes data sequentially
+and having the start of a slot been written to does not mean all of it is available to read. The offset has to
+do with another optimization for the size of RDMA writes. Depending on the size of requests and reponses, a 
+slot can be sent to the remote machine before it is 100\% full, in which case writing the full slot to remote 
+machine's memory wastes bandwidth and lowers performance. Since the reasy bit needs to be at the end of the 
+slot and in a known place, requests and responses are aligned to the end of the slot leaving the start of it
+empty. The offset informs the remote side where the actual data starts in the slot. The request slot also 
+contains the request count and the vtable cache as discussed earlier. The last thing in request slot metadata
+is a bit that indicates if there is a single large reequest in the slot or muliptle small ones. As discussed 
+in \ref{tcp_fallback}, if the request will not fit in the slot it is sent using TCP and only the relevant 
+pointers go in the slot. The decision to only send a single request if it is large is to simplify the design
+since large requests are not the focus of this work.
+
+\subsection{Trsutee and Client memory layout}
+
+% \input{figures/req_mem_layout}
+% \input{figures/resp_mem_layout}
+\input{figures/mem_layout}
+
+\subsection{Scaling impact of increasing number of Queue Pairs}
+
+\input{figures/qp_scaling_6m_r6615}
+
+As discussed in \ref{s:rdmaapi}, rdma communications happen via a queue pair (QP). Theoretically each machine
+pair only needs to have a single QP resulting in $num\_machines^2$ QPs. However, this means sharing a QP among 
+many threads. The QPs use a spin lock internally to mack sure QPs can shared safely but that results in threads
+having to wait for each other before they can send requests to a trustee. A better but naive design might be
+to have a QP for every pair of system threads in the whole rack resulting in QPs in the order of 
+$(num\_machines*num\_threads\_per\_machine)^2$. This also resluts in lost performance due to NIC cache 
+limitation. The NIC caches any recently used QPs, along with page mappings for any recently used pinned pages
+in its SRAM. Increasing the number of QPs resluts in NIC running out of SRAM, which in turn results in cache 
+misses. We use a middle of the road system where instead of each thread making a separate QP for every other 
+thread, it makes a QP for each machine in the rack. This reduces the total number of QPs in the system to 
+$num\_machines^2*num\_threads\_per\_machine$. \ref{fig:qp_scaling_6m} shows an experiment that demonstrates the performance 
+gained by reducing the number of QPs in the system. This experiment was performed with 6 machines, all connected
+to switch with 100Gb/s ethernet links. Each thread writes 256 bytes in a randomly chosen remote thread's 
+memory twenty million times. As the number of threads increases, thereby increasing the number of QPs, the 
+system with reduced number of QPs maintains peak throughput where as the system with quadratic number of QPs 
+starts to fall off, resulting in a 25\% decrease at the extreme end.

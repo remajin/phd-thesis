@@ -1,0 +1,14 @@
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 1868.6600 req_size: 1 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 1869.7468 req_size: 2 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 1860.9664 req_size: 4 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 1846.2355 req_size: 8 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 1532.2601 req_size: 16 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 1148.0329 req_size: 32 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 763.0263 req_size: 64 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 453.5651 req_size: 128 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 237.3889 req_size: 256 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 111.6822 req_size: 512 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 70.0449 req_size: 960 sum: 1920000000 calc: 1920000000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 0.0262 req_size: 1024 sum: 19199997 calc: 19200000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 0.0237 req_size: 2048 sum: 19199997 calc: 19200000 X: false rack_size: 12
+kthread_count: 192 trustee_count 192 var_count: 192 MOPs: 0.0177 req_size: 4096 sum: 19199997 calc: 19200000 X: false rack_size: 12
