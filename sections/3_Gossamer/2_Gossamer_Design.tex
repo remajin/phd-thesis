@@ -27,7 +27,7 @@ that \name{} processes are fate sharing in the same way single machine processes
 
 \subsection{Gossamer Process}
 To launch a \name{} process, the user logs into the controller machine and starts the application there. Since 
-parts of \name{} rely on similar memory layout (as discussed in \ref{s:header}), each machine in the rack 
+parts of \name{} rely on similar memory layout (as discussed in \ref{sg:slots}), each machine in the rack 
 should be populated with the same binary ahead of time. The application needs to have its \textit{main} 
 function call a helper function from the \name{} library and pass a function that would act as the real 
 \textit{main} function along with how many threads the application needs to use across the whole rack. This 
@@ -64,17 +64,19 @@ how that differs from the nonblocking delegation. Each fiber issues a request th
 before voluntarily yeilding the runtime. Each thread has a fiber that periodicaly checks for any incoming 
 responses and sends any requests in the pending queue. As there will be many fibers running on each thread this 
 will allow the polling fiber to send multiple requests as a larger batch, increasing the throughput of the system. 
-On the trustee side, one of the fibers is dedicated to polling for any incoming requests. Since any incoming 
-requests from the same thread will be contigous in memory, it can complete all of them and then send all of 
-the responses in a single batch. The fiber that polls for reponses on the requesting thread will then process 
-the responses and add the corresponding fibers back in to the ready to run queue. The main difference for 
-async delegation is that instead of yeilding after enqueuing the request, it just keeps going and enqueues any 
-subsequent requests as well. This fiber will yield the runtime when the pending queue is full, after which the 
-response polling fiber can run and send all of the requests to the respective trustees. Once it receives the 
-responses, it can execute any callback closures the user might have provided. This means that there is no 
-benefit to having multiple fibers per thread that issue requests as that is not needed for batching and the 
-fibers will be yielding far less frequently. \ref{tab:delegationexample} shows a small example program that 
-uses both types of delegation.
+The requests originating from a client that are destined for the same trustee are batched in a 
+\textit{RequestSlot} (discussed in detail in \ref{sg:slots}) that can hold a variable  number of requests depending 
+on their size. On the trustee side, one of the fibers is dedicated to polling for any incoming requests. Since any 
+incoming requests in a RequestSlot will be contigous in memory, it can complete all of them and then send all of 
+the responses in a single batch as well. Similar to requests, responses are batch using a \textit{ResponseSlot}. 
+The fiber that polls for reponses on the requesting thread will then process the responses and add the 
+corresponding fibers back in to the ready to run queue. The main difference for async delegation is that instead 
+of yeilding after enqueuing the request, it just keeps going and enqueues any subsequent requests as well. This 
+fiber will yield the runtime when the pending queue is full, after which the response polling fiber can run and 
+send all of the requests to the respective trustees. Once it receives the responses, it can execute any callback 
+closures the user might have provided. This means that there is no benefit to having multiple fibers per thread 
+that issue requests as that is not needed for batching and the fibers will be yielding far less frequently. 
+\ref{tab:delegationexample} shows a small example program that uses both types of delegation.
 
 \subsection{NoRef}
 Gossamer leverages the Rust type system to prevent the sending of references over delegation channels. One of 
@@ -130,7 +132,7 @@ This, in turn, enables us to clone a trust within a delegated context.
 
 \subsection{Request size and TCP fallback}
 \label{s:tcp_fallback}
-As describe in \ref{s:del_flow}, the requsts going from a client thread to the same trustee will be batched and 
+As described in \ref{s:del_flow}, the requsts going from a client thread to the same trustee will be batched and 
 on trustee side the requests coming from a single thread will all be contigous in memory. This is achieved by 
 the trustee having a pre-allocated sapce in memory (called requestSlot) for incoming requests from each client 
 thread. This limits how many requests a client thread can send in a single batch depending on how much data is 
@@ -146,13 +148,18 @@ limit on how much data can be sent using RDMA at once. Since there would be an u
 requests are not the focus for \name{}, we decided to opt for the simpler design in place at the moment.
 
 \subsection{Request/Response Slot Format}
-\label{s:header}
+\label{sg:slots}
 
 \input{figures/req_slot}
 
 As discussed in the previos section, the number of requests sent in batch depends on the size of the requests 
-plus the size of any headers sent with the request. The necessary parts to process a \name{} request are as 
-follows:
+plus the size of any headers sent with the request. Section \ref{st:slots} describes the format of request and 
+response slots used for single machine delegation channel. Here we describe further optimizations made to request
+slots to minimize per request metadata to reduce wasted network bandwidth. The two-slot optimization of single 
+machine delegation channel is also disabled for remote delegation, as the cost of doing two separate RDMA write 
+operations outweighs any benefit gained from it. \\
+
+The necessary parts to process a \name{} request are as follows:
 \begin{itemize}
 	\item The closure. Closures in rust are fat pointers consisting of a vtable that points to where the 
 	code is in the text section along with the size of captured data, and a data pointer that points to 
@@ -180,24 +187,15 @@ with the request is if it is not known at compile time. One thing to note here i
 pointer to be the valid on all of the machines which is not the case normally due to linux address space 
 layout randomization (ASLR), making disabling it a necessity for \name{} to function.\\
 
-Similarly, the responses for all of the requests in a request slot are batched and written to the client's 
-memory with a single RDMA write. Unlike a request however, the size of a response is not always known whe 
-submitting a request. While the known size of requests allows us to pack as many requests in a request slot
-as would fit, it can lead to situations where not all of the responses will fit in a single response slot. 
-Based on this observation, the responses are divided in two types.
-
-\begin{itemize}
-	\item Statically known sized responses. Reffered to as fixed size response here.
-	\item Dynamically sized responses.
-\end{itemize}
-
-Both of these can be further divided into responses that are small and can fit inside the slot or large and
-cannot fit inside the slot. For fixed size and small responses, the response can be sent inline without any
-metadata. For dynamically sized small responses, the size of the response is accompanied with them. For large
-responses, both fixed an dynamically sized, the response is sent using TCP and the pointer to the remote 
-buffer is sent in the response slot. In addition, if the response size is zero and statically known, then 
-nothing is sent in the slot. \ref{fig:req_slot} shows the format for both the request and response 
-slots.\\
+Similarly, the responses for all of the requests in a request slot are batched in a response slot and written to 
+the client's memory with a single RDMA write. Unlike a request however, the size of a response is not always known 
+when submitting a request. If the response size cannot be determined statically, it is preceeded by 8 bytes that 
+contain its size. While a known response size can be used to limit the number of requests in a reqest slot just 
+like the size of requests, unkown size responses can lead to scenarios where not all of the responses for a 
+request slot fitin a single response slot. In such cases the trustee will send anything that doesn't fit in the 
+response slot to the client using TCP in a similar fashion as discussed in \ref{s:tcp_fallback}. In addition, if 
+the response size is zero and statically known, then nothing is sent in the slot for that particular response. 
+\ref{fig:req_slot} shows the format for both the request and response slots.\\
 
 In addition to the reqest/response, the slots also contain some metadata. They both contain a ready bit and
 an offset, with the request slot containing a few more things. The ready bit is ther to let the other side 
@@ -210,16 +208,16 @@ machine's memory wastes bandwidth and lowers performance. Since the reasy bit ne
 slot and in a known place, requests and responses are aligned to the end of the slot leaving the start of it
 empty. The offset informs the remote side where the actual data starts in the slot. The request slot also 
 contains the request count and the vtable cache as discussed earlier. The last thing in request slot metadata
-is a bit that indicates if there is a single large reequest in the slot or muliptle small ones. As discussed 
-in \ref{tcp_fallback}, if the request will not fit in the slot it is sent using TCP and only the relevant 
+is a bit that indicates if there is a single large request in the slot or muliptle small ones. As discussed 
+in \ref{s:tcp_fallback}, if the request will not fit in the slot it is sent using TCP and only the relevant 
 pointers go in the slot. The decision to only send a single request if it is large is to simplify the design
 since large requests are not the focus of this work.
 
 \subsection{Trsutee and Client memory layout}
 
-% \input{figures/req_mem_layout}
+\input{figures/req_mem_layout}
 % \input{figures/resp_mem_layout}
-\input{figures/mem_layout}
+% \input{figures/mem_layout}
 
 \subsection{Scaling impact of increasing number of Queue Pairs}
 

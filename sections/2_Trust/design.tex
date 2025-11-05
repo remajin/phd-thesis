@@ -1,0 +1,76 @@
+\section{Key Design and Implementation Details}
+
+In this section, we delve deeper into the design and implementation of \trust{}, from the mechanics of delegating Rust closures and handling requests and responses, to asynchronous versions of {\tt apply()}.
+
+\subsection{Delegating Closures}
+\label{s:delegating}
+
+The key operation supported by \trust{} is {\tt apply()}, which applies a Rust {\it closure} to the property referenced by the trust. A Rust closure consists of an anonymous function and a captured environment, which together is represented as a 128-bit {\it fat pointer}. Thus, to delegate a closure, a request must at minimum contain this fat pointer, and a reference to the property in question. 
+
+One or more requests are written to the client's dedicated, fixed-sized {\it request slot} for the appropriate trustee.
+That is, only the client thread may write to the request slot. 
+For efficiency, if the captured environment of the closure fits in the request slot, we copy the environment directly to the slot, and update the fat pointer to reflect this change. 
+A flag in the request slot indicates that new requests are ready to be processed. See \S\ref{st:slots} for details on request and response slot structure.
+
+Responses are transmitted in a matching dedicated response slot. Leveraging the Rust type system, we restrict both requests and responses to types that can be serialized. 
+The subtle implication of this is that the return value may not pass any references or pointers to trustee-managed data.\footnote{That said, we cannot prevent  determined Rust programmers from using {\tt unsafe} code to circumvent this restriction.}
+While small closures with simple, known-and-fixed-size return types will generally yield the best performance, there is no limit beyond the serializability requirement on the size or complexity of closures and return types. %API does support complex compound return types as well, such as a \Verb"HashMap<String,Option<Vec<usize>>>". 
+
+\subsection{Scheduling Delegation Work}
+
+Generally speaking, a call to {\tt apply()} appends a request to a pending request queue, local to the requesting thread.
+In the case of {\tt apply()}, the calling fiber is then suspended, to be woken up when the response is ready.
+Pending requests are sent during response polling, and as soon as an appropriate request slot is available. 
+The intervening time is spent running other fibers, including the local trustee fiber, and polling for responses/transmitting requests.
+
+There is a throughput/latency trade-off between running application fibers, and polling for requests/responses: poll too often, 
+and few requests/responses will be ready, wasting polling effort. 
+Poll too seldom, and many requests/responses will have been ready for a long time, increasing latency.
+Automatically tuning this trade-off is an area of ongoing research. 
+That said, the current implementation performs delegation tasks in a fiber that is scheduled in FIFO order just as other fibers.
+After serving incoming requests, this fiber polls for incoming responses and issues any enqueued outgoing requests as applicable.
+
+\subsubsection{Local Trustee Shortcut}
+
+When a Trust has the current thread as its trustee, it is superfluous to use delegation to apply the closure. Instead, it is just as safe, and more efficient, to simply apply the closure directly, since we know that no other closures will run until the provided closure has run to completion. As a reminder, we know this because delegated closures may not suspend the current fiber.
+
+\subsection{Request and Response Slot Structure}
+\label{st:slots}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=5in]{figures/request_slot}
+  \caption{The fixed-size \trust{} request slot consists of a {\tt ready} bit, a request counter, and a variable number of variable-sized requests. 
+  The response slot contains a matching {\tt bit}, as well as one (fixed, variable, or zero-sized) response per request in the matching request slot. 
+  There is one dedicated pair of request/response slots for each trustee/client pair.
+  }
+  \label{f:requestslot}
+\end{figure*}
+Figure \ref{f:requestslot} illustrates the internal structure of the basic request and response slot design. 
+A header consisting of a {\tt ready} bit and a request count, is followed by a variable number of variable-sized requests.
+The value of the {\tt ready} bit is used to indicate whether a new request or set of requests has been written to the slot: 
+if the bit differs from the {\tt ready} bit in the corresponding response slot, then a new set of requests is ready to be processed.
+
+By default, the slot size is 1152 bytes, and the client may submit as many closures as it can fit within the slot. Here, the minimum size of a request is 24 bytes: a 128-bit fat pointer for the closure, and a regular 64-bit pointer for the property.
+The captured environment of Rust closures have a known, fixed size, which is found in the vtable of the closure. 
+For typical small captured environments, this is copied into the request slot, and the pointer updated to point at the new location. 
+Serialized closure arguments are appendend next, followed by the next request. 
+
+Responses are handled in a similar fashion, though there is no minimum response size. 
+Responses are sent simultaneously for all the requests in the request slot. 
+The size of each response is often statically known, in which case it is not encoded in the channel.
+Any variable-size responses are preceded by their size. 
+
+The size of each request is always known, either statically or at the time of submission, which means we can restrict the number of requests sent to what can be accommodated by the request slot. 
+The size of the response is not always known at the time the request is sent.
+In cases where the combined size of return values exceeds the space in the response slot, the trustee dynamically allocates additional memory to fit the full set of responses,
+at a small performance penalty. 
+
+\subsubsection{Two-part slot optimization}
+
+In order to accommodate a broad range of application characteristics, including those with a single trustee and many clients, as well as a single client with many trustees, we introduce a small optimization beyond the basic design above. 
+Rather than represent the request and response slots as monolithic blocks of bytes, we represent each as two blocks: a 128-byte primary block, and a 1024-byte overflow block; each request and response is written, in its entirety, to one or the other block. 
+
+This addresses an otherwise problematic trade-off with respect to the request and response slot sizes: 
+with a monolithic request slot of, say, one kilobyte, the trustee would be periodically scanning flags 1024 bytes apart, a very poor choice from a cache utilization perspective, unless the slots are heavily utilized.
+A two-part design accommodates a large number of requests (where needed), but improves the efficiency of less heavily utilized request slots by spacing ready flags, and a small number of compact requests, more closely using a smaller primary request block.

@@ -7,7 +7,7 @@ The \trust{} API supports a variety of ways to delegate work, some of which we e
 apply(c: FnOnce(&mut T)->U)->U
 \end{lstlisting}
 
-{\tt apply()} is the primary function for blocking, synchronous delegaion as described in earlier sections. 
+{\tt apply()} is the primary function for blocking, synchronous delegation as described in earlier sections. 
 It takes a closure of the form {\tt |\&mut T| \{\}}, where {\tt T} is the type of the property. 
 If the closure has a return value, apply returns this value to the caller. 
 

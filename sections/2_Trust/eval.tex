@@ -1,0 +1,314 @@
+\section{Evaluation}
+\label{s:eval} 
+
+\begin{figure*}
+  \begin{subfigure}[t]{.8\textwidth}
+    \centering
+\includegraphics[height=1.8in]{figures/plots/throughput_manyvars}
+\caption{Uniform access distribution. }
+\label{f:fna_variables}
+\end{subfigure}
+\begin{subfigure}[t]{.8\textwidth}
+  \centering
+  \includegraphics[height=1.8in]{figures/plots/throughput_manyvars_zipf}
+  \caption{Zipfian access distribution, $\alpha=1$.}
+  \label{f:fna_variables_zipf}
+\end{subfigure}
+\caption{Fetch-and-add throughput vs. object count. \trust{} is substantially better than locks in congested settings,
+and matches lock performance in uncongested settings. TCLocks were not found to be competitive.}
+\end{figure*}
+
+
+Below, we evaluate the performance of \trust{} in two ways: 1) on both microbenchmarks, designed to stress test the core mechanisms behind \trust{} and locking, and 2) on end-to-end application benchmarks,
+which measure the performance impact of \trust{} in the context of a complete system and a more realistic use case. 
+
+\subsection{Fetch and Add: Throughput}
+
+For our first microbenchmark, we use a basic fetch-and-add application. Here, a number of threads repeatedly increment a counter chosen from a set of one or more, and fetches the value of the counter. In common with prior work on synchronization and delegation \cite{dice2011flath,calciu2013delegation,petrovic2015delegation,fatourou2011combining,hendler2010flat,oyama1999combining,yew1987combining,shalev2006combining,david2013everything}, we also include a single {\tt pause} instruction in both the critical section and the delegated closures. The counter is chosen at random, either from a uniform distribution, or a zipfian distribution. Each thread completes 1 million such increments. 
+In this section, each data point is the result of a single run.
+
+Below, we primarily evaluate on a two-socket Intel Xeon CPU Max 9462, of the Sapphire Rapids architecture. This machine has a total of 64 cores, 128 hyperthreads, and 384 GB of RAM. Unless otherwise noted, we use 128 OS threads. In testing, several older x86-64 ISA processors have shown similar trends -- these results are not shown here.
+ For locking solutions, we use standard Rust {\tt Mutex<T>} and the spinlock variant provided by the Rust {\tt spin-rs-0.9.8} crate, as well as MCSLock<T> provided by the Rust {\tt synctools-0.3.2} crate. For {\tt Trust<T>}, we show results for blocking delegation (Trust) as well as nonblocking delegation (Async).
+In Fig. \ref{f:fna_variables}, we also include TCLocks, a recent combining approach offering a transparent replacement for standard locks, via the Litl lock wrapper \cite{litl} for {\tt pthread\_mutex}. 
+To be able to evaluate this lock, we wrote a separate C microbenchmark, matching the Rust version. In the interest of an apples-to-apples comparison, we first verified that the reported performance with stock {\tt pthread\_mutex} on the C microbenchmark matched the Rust {\tt Mutex<T>} performance in our Rust microbenchmark.
+
+Below, the {\tt Trust} results may be seen to represent any application with ample concurrency available in the form of conventional synchronous threads. {\tt Async} represents applications where a single thread may issue multiple simultaneously outstanding requests, e.g. a key-value store or web application server. 
+Applications with limited concurrency are not well suited to delegation, except where the delegated work is itself substantial, which is not the case for this fetch-and-add benchmark. 
+We further report results with both letting all cores serve as both clients and trustees ($shared$), as well as with an ideal number of cores dedicated serve only as trustees ($dedicated$).
+
+\subsubsection{Uniform Access Pattern}
+
+
+Figure \ref{f:fna_variables} illustrates the performance of several solutions on the uniform distribution version of this benchmark. 
+For a very small number of objects, no data points are reported for some of the lock types - this is because the experiment took far too long to run due to severe congestion collapse. 
+
+{\tt Trust<T>} substantially outperforms locking under congested conditions.
+Between 1--16 objects, the performance advantage is 8--22$\times$ the best-performing MCSLock. 
+%Where each OS thread hosts only a single application fiber, the advantage is less pronounced - 2--3$\times$, and only for 4 variables or less. 
+%While queue-based locks have been shown to better avoid severe congestion collapse, it was shown in FFWD \cite{ffwd} that these locks still perform poorly, around 3 MOps, compared to delegation, under congested conditions. 
+For larger numbers of objects, the overhead of switching between fibers becomes apparent, as asynchronous delegation is able to reach a higher peak performance.  
+In entirely uncongested settings, with 10$\times$ as many objects as there are threads, locking is able to match asynchronous delegation performance.
+TCLocks \cite{tclocks} was the only lock type to complete the single-lock experiment within a reasonable time. 
+It consistently outperforms spinlocks under congestion, and remains competitive with Mutex and MCS on highly congested locks.
+However, TCLocks appear to trade their transparency for high memory and communication overhead, making it unable to compete performance-wise beyond highly congested settings. 
+\footnote{TCLocks performance appears somewhat architecture dependent. In separate runs on our smaller Skylake machines, TCLocks were able to outperform Mutex by $\approx$50\% under the most extreme contention (a single lock).} 
+Moreover, we struggled to apply TCLocks to memcached (which consistently crashed under high load), as well as to Rust programs (as Rust now uses built-in locks rather than {\tt libpthreads} wrappers). We thus elide TCLocks from the remainder of the evaluation.
+
+%For \trust{}, performance increases with the number of objects until it reaches the number of trustees. After that, there is not much benefit to having more objects, except for distributing work evenly between trustees. 
+
+\begin{figure*}[t]
+  \begin{subfigure}[t]{.8\textwidth}
+    \centering
+  \includegraphics[height=1.8in]{figures/plots/latency_vs_load}
+  \caption{Uniform access distribution.}
+  \label{f:latency_vs_load}
+  \end{subfigure}
+  \begin{subfigure}[t]{.8\textwidth}
+    \centering
+    \includegraphics[height=1.8in]{figures/plots/latency_vs_load_zipf}
+    \caption{Zipfian access distribution, $\alpha=1$.}
+    \label{f:latency_vs_load_zipf}
+    \end{subfigure}
+    \caption{Mean latency vs. offered load. In low-load settings, delegation incurs higher latency than locking. However, latency remains much more stable with increasing load. 
+    The near-vertical lines show unbounded latency as capacity is reached.  
+    }
+  \end{figure*}
+
+\subsubsection{Skewed Access Pattern: Zipfian distribution}
+
+Zipf's law \cite{zipf1949} elegantly captures the distribution of words in written language. In brief, it says that the probability of word occurrence $p_w$ is distributed according to the rank $r_w$ of the word, thus: $p_w \propto {r_w}^{-\alpha}$, where $\alpha \sim 1$.
+Similar relationships, often called ``power laws'', are common in areas beyond written language \cite{zipf1949,boltzmann,Ojovan_2006,DODDS20019,Venture}, sometimes with a greater value for $\alpha$. The higher the $\alpha$, the more pronounced is the effect of popular keys, resulting in congestion. 
+
+Figure \ref{f:fna_variables_zipf} shows the results of our fetch-and-add experiment, but with objects selected according to a zipfian distribution ($\alpha=1$) instead of the uniform distribution above, representing a common skewed access distribution. 
+
+With this skewed access pattern, \trust{} overwhelmingly outperforms locking across the range of table sizes. 
+This is explained by the relatively low throughput of a single lock. 
+In our experiments, even MCSLocks, known for their scalability, offer at best 2.5 MOPs. 
+When a skewed access pattern concentrates accesses to a smaller number of such locks, low performance is inevitable.
+By comparison, a single \trust{} trustee will reliably offer 25 MOPs, for similarly short critical sections.
+For more highly skewed patterns, where $\alpha > 1$ (not shown), the curve grows ever closer to the horizontal as performance is bottlenecked by a small handful of popular items.
+
+
+\subsection{Fetch and Add: Latency}
+
+Next we measure mean latency for a scenario with 64 objects (uniform access distribution), and 1,000,000 objects (Zipfian access distribution), while varying the offered load. 
+We show delegation results with 8 dedicated trustee cores, and with 64 shared trustee cores\footnote{The evaluation system has 64 cores, 128 hardware threads. In the vast majority of cases, having both hardware threads of each core work as trustees results in reduced performance.}.
+We also plot the results for a spinlock, a standard Rust mutex, and an MCS lock as above. 
+
+At low load, low contention results in low latency for locking, a ideal situation for locks.
+%For low load, there is little lock contention, which results in low latency for locking. 
+%This latency is representative of an ideal use case for locks. 
+However, as load increases, the locks eventually reach capacity, resulting in a rapid rise in latency. 
+With \trust{}, even low load incurs significant latency, due to message passing overhead. 
+However, due to the much higher per-object capacity available, latency increases slowly with load until the capacity is reached. 
+Thus, \trust{} offers stable performance over a wide range of loads, at the cost of increased latency at low load. 
+The higher latency does mean that to take full advantage of delegation, applications need to have 
+ample parallelism available.%, such that clients typically have other useful work to do, such as more requests to prepare, while they await the next trustee response. 
+
+%It's worth noting that with the Zipfian access distribution, even with 1,000,000 objects, no lock type shows a significant latency advantage over delegation even at very low loads. 
+%This is because Zipfian access patterns tend to concentrate much of the load to a small number
+%of keys, here the low capacity of each individual lock is quickly exhausted, resulting in congestion collapse.
+
+For both Uniform and Zipfian access distributions, we also measured 99.9th percentile (tail) latency (not shown). Overall, tail latency with locking (all types) tended to be approximately 10$\times$ the mean latency, in low-congestion settings. Delegation tail latency with a dedicated trustee, meanwhile, was 2.5$\times$ the mean, making delegation tail latency under low load only 2--3$\times$ that of locking.% Under load approaching capacity, both latency and tail latency grow rapidly to extremely high levels, for both locking and delegation. In this regime, 
+%the figure of merit is capacity, rather than latency.
+
+It's also worth noting the difference between 8 dedicated trustees, and 64 trustees on threads shared with clients. The latency when sharing the thread with clients is naturally higher than when using trustees dedicated to trustee work. However, as load increases having more trustees available to share the load results in better performance. Using all the cores for trustees all the time also eliminates an important tuning knob in the system. 
+
+
+
+% \subsection{Nested delegation / locking}
+
+% We now evaluate the performance of \trust{} in a nested delegation setting. In this microbenchmark, we atomically modify two objects together, where the two objects may be hosted by different trustees, as described in \ref{s:nesting}. 
+
+% In Figures \ref{f:nesting} (uniform) and \ref{f:nesting_zipf} (Zipfian), we vary the number of variables, and measure the total throughput available. 
+% Similar to the non-nested case, delegation fares significantly better than locking for popular objects, whether due to the access distribution or the total number of objects. Also, locking does considerably better than delegation where there is no congestion. 
+% This is primarily for the same reason as in the non-nested case. 
+% However, another contributing factor is the added coordination required in the nested delegation case: instead of doubling the number of messages, nesting adds a third message, so the maximum theoretical throughput for a two-object transaction is one third of the throughput of a single-object transaction. 
+
+
+\subsection{Concurrent key-value store}
+\label{s:kvstore}
+
+\begin{figure*}[t]
+  \centering
+  \begin{subfigure}[t]{.8\textwidth}
+      \centering
+      \includegraphics[height=1.8in]{figures/plots/var-keyspace-uniform.pdf}
+      \caption{Uniform access distribution}
+      \label{f:kvstore_tput}
+  \end{subfigure}
+  \begin{subfigure}[t]{.8\textwidth}
+      \centering
+      \includegraphics[height=1.8in]{figures/plots/var-keyspace-zipfian.pdf}
+      \caption{Zipfian access distribution}
+      \label{f:kvstore_tput_zipf}
+  \end{subfigure}
+
+  \caption{Key-value store throughput, with 5\% writes and varying table size.}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \begin{subfigure}[t]{0.8\textwidth}
+      \centering
+      \includegraphics[height=1.8in]{figures/plots/var-write-uniform.pdf}
+      \caption{Uniform access distribution}
+      \label{f:kvstore_tput_writes}
+  \end{subfigure}
+  \begin{subfigure}[t]{0.8\textwidth}
+      \centering
+      \includegraphics[height=1.8in]{figures/plots/var-write-zipfian.pdf}
+      \caption{Zipfian access distribution}
+      \label{f:kvstore_tput_writes_zipf}
+  \end{subfigure}
+
+  \caption{Key-value store throughput, with varying write percentage.}
+\end{figure*}
+
+For a more complete end-to-end evaluation, we implement a simple TCP-based key-value store, backed by a concurrent dictionary.
+Here, we run a multi-threaded TCP client on one machine, and our key-value store TCP server on another, identical machine.
+The two machines are connected by 100 Gbps Ethernet.
+We compare our \trust{} based solution to Dashmap \cite{dashmap}, one of the highest-performing concurrent hashmaps available as a public Rust crate,
+as well as to our own na\"ively sharded Hashmap, using Mutex or Readers-writer locks and the Rust {\tt std::collections::HashMap$<$K, V$>$}.
+Dashmap is a heavily optimized and
+well-respected hash table implementation, which is regularly benchmarked against competing designs.
+
+We implement the key-value store as a multi-threaded
+server, where each worker-thread receives \texttt{GET} or \texttt{PUT} queries from one or more connections,
+and applies these to the back-end hashmap. Both reading requests and sending results is done in batches, so as to
+minimize system call overhead. Moreover, the client accepts responses out-of order, to minimize waiting.
+The TCP client continuously maintains a queue of parallel queries over the socket, such that the server always has
+new requests to serve.
+In the experiments, we dedicate one CPU core to each worker thread.
+
+For our sharded hashmaps, we create a fixed set of 512 shards, using many more locks than threads to reduce lock contention.
+Dashmap uses sharding and readers-writer locks internally, but exposes a highly efficient concurrent hashmap API.
+For our \trust{} based key-value store, we use 16 and 24 cores to run trustees (each hosting a shard of the table) exclusively,
+and the remaining cores for socket workers.
+They are named Trust16 and Trust24, respectively.
+Socket workers delegate all hash table accesses to trustees.
+The key size is 8 bytes and the value size is 16 bytes in the experiments.
+Prior to each run, we pre-fill the table, and report results from an average of 10 runs.
+%each lasting approximately \je{?} seconds.
+
+Figures \ref{f:kvstore_tput}--\ref{f:kvstore_tput_zipf} show the results from this small key-value store application,
+for a varying total number of keys with 5\% write requests and 95\% read request,
+and Uniform as well as Zipfian \cite{zipf1949} access distributions.
+For Zipfian access, we use the conventional $\alpha=1$.
+Overall, similar to the microbenchmark results, we find that the delegation-based solution
+performs significantly better when contention for keys is high. However, due to the considerably higher complexity of
+this application, the absolute numbers are lower than in our microbenchmarks. The relative advantage for delegation is also somewhat smaller,
+as some parts of the work of a TCP-based key-value store are already naturally parallel.
+
+For the Uniform distribution and 5\% writes, all the solutions perform similarly above 1,000 keys,
+a large enough number that there is no significant contention. With 100 keys and less, \trust{} enjoys a large advantage even under uniform access distribution.
+With a Zipfian access distribution, accesses are concentrated to the higher-ranked keys, leading to congestion.
+In this setting, \trust{} trounces the competition, offering substantially higher performance across the full 1--100,000,000 key range.
+It is interesting to note, also, that the Zipfian access distribution is where the carefully optimized design of
+Dashmap shines, while it offers a fairly limited advantage over a na\"ive sharded design with readers-writer locks
+on uniform access distributions. This speaks to the importance of efficient critical sections in the presence of lock congestion.
+
+The througput of Trust16 is higher than Trust24 with 1,000--100,000 keys because it is of low cost to manage a relatively
+small key space, while Trust16 can dedicate more resources to handle socket connections.
+However, the performance of Trust16 starts to degrade with more keys, because the limited number of trustees fall
+short when managing larger key spaces. With 24 trustees, the performance can be maintained at a high level.
+The difference between Trust16 and Trust24 suggests an important direction of future research. For I/O heavy processes
+like key-value stores, dedicated trustees will often outperform sharing the core between trustees and clients.
+However, it is non trivial to correctly choose the number of trustees.
+Automatically adjusting the number of cores dedicated to trustee work at runtime would be preferable.
+
+In principle, readers-writer locks have a major advantage over \trust{} in that they allow concurrent reader access,
+while \trust{} exclusively allows trustees to access the underlying data structure.
+To better understand this dynamic, Figures \ref{f:kvstore_tput_writes}--\ref{f:kvstore_tput_writes_zipf}
+show key-value store throughput over a varying percentage of writes.
+
+Here, we use 1,000 keys for the Uniform access distribution, and 10,000,000 keys for Zipfian access distribution.
+We note that these are table sizes where lock-based approaches hold an advantage in Figures \ref{f:kvstore_tput}--\ref{f:kvstore_tput_zipf}. 
+For Uniform access patterns, where there is limited contention given the table size of 1,000 keys, the
+impact of the write percentage is muted. For lock-based designs, the performance does drop somewhat, but remains
+at a high level even with 100\% writes. 
+
+It is interesting to note that \trust{} performance increases modestly with the write percentage. One reason behind this is that in our 
+key-value store, the closures issued by reads by necessity have large return values, while the closures issued by writes have no return values at all. This may allow the trustee to use only the first, small part of the return slot, occasionally saving two LLC cache misses per round-trip.
+
+% We hypothesize that this is due to differences in memory allocation: with writes, there is typically the need to allocate heap memory for a new item, and release the memory for an item being replaced. In a lock-based design, this memory may be allocated by one core, then released by another, leading to contention for cache lines and potentially locks within the heap allocator. 
+% With \trust{}, memory is freed by the same core that allocated it, improving memory locality. 
+
+With the Zipfian access distribution, even with 10,000,000 keys, contention remains a bigger concern, especially for Mutex. All four designs exhibit reduced performance with increased write percentages, but again, \trust{} 
+proves more resilient. 
+The efficiency advantage of Dashmap over our na\"ive lock-based designs is on full display with the Zipfian access 
+distribution and a high write percentage. 
+That said, the fundamental advantage of \trust{} over locking in this application is clear.
+
+\section{Legacy Application: Memcached}
+\label{s:memcached}
+
+We also port memcached version 1.6.20 to \trust{} to demonstrate both the applicability and performance impact on legacy C applications.
+Memcached is a multi-threaded key-value store application. Its primary purpose is serving PUT and GET requests with string keys and values over standard TCP/IP sockets. Internally, memcached contains a hash-table type data structure with external linkage and fine-grained per-item locking. By default, memcached is configured to use a fixed number of worker threads. Incoming connections are distributed among these worker threads. Each worker thread uses the {\tt epoll()} system call to listen for activity on all its assigned connection. Each connection to a memcached server traverses a fairly sophisticated state machine, a pipelined design that is aimed at maximizing performance when each thread serves many concurrent connections with diverse behaviors. The state machine will process requests in this sequence: receive available incoming bytes, parse one request, process the request, enqueue the result for transmission, and transmit one or more  results. 
+
+For our port to \trust{}, we eliminate the use of most locks, and instead divide the internal hash table and supporting data structures into one or more shards, and delegate each shard to one of potentially multiple trustees. 
+Thus, instead of acquiring a lock, we delegate the critical section to the appropriate trustee for the requested operation.  
+Our ported version follows the original state machine design, with one key difference:
+for each incoming request on the socket, we make an asynchronous delegation request using {\tt apply\_then}, then 
+move on to the next request without waiting for the response from the trustee.  
+That is, rather than sequentially process each incoming request, we leverage asynchronous delegation to capture additional concurrency. 
+
+A complicating factor in this asynchronous approach results from {\tt memcached} being initially designed for synchcronous operation with locking. 
+For any one trustee-client pair, even asynchronous delegation requests are executed in-order, and responses arrive in-order.
+However, this is not guaranteed for requests issued to different trustees. 
+Consequently, the memcached socket worker thread must order the responses before they are transmitted over the network socket to the remote client.
+By contrast, our delegation-native key-value store in \ref{s:kvstore} sends responses out of order over the socket, and instead includes a request ID in the response.
+
+Another difference worth mentioning is that we don't allow delegation clients (in this case, the memcached socket worker thread) to access delegated data structures at all. 
+This means that instead of a pointer to a value in the table, clients recieve a copy of the value. 
+This significantly improves memory locality and simplifies memory management, since every value has a single owner. 
+However, it does incur extra copying, which may reduce performance under some circumstances.\footnote{This can become a problem when values are large. For this use case, \trust{} includes an equivalent of Rust's {\tt Arc<T>} which allows multiple ownership of read-only values. %\je{make this true}
+}
+
+In practice, because memcached is written in C and \trust{} is written in Rust, we cannot directly add delegation to the memcached source code. We address this in a two-step process: first, for any task that requires delegation, we create a 
+minimal Rust function that performs that specific task. That is, a custom Rust function that becomes part of the 
+memcached code base. Typically, such a function locates the appropriate Trust or TrusteeReference, and delegates a single closure.
+Second, we break out the critical sections in the C code into separate inner functions that may be called from Rust. Thus, to delegate a C critical section, we simply call the inner function from a delegated Rust closure. 
+
+Our port of Memcached to \trust{} has approximately 600 lines of added, deleted or modified lines of code, out of 34,000+ lines total. 
+This number includes approximately 200 of lines which were simply cut-and-pasted into the new inner functions for critical sections.
+In addition, we introduced approximately 350 new lines of Rust code, to provide the interface between the C and Rust environments.
+
+\subsection{Evaluation}
+%\begin{figure*}
+\begin{figure}[t]
+  \centering
+\includegraphics[height=1.8in]{figures/plots/size}
+  \caption{Memcached throughput with varying table size. Uniform access distribution. S: stock memcached. }
+  \label{f:memcached_tput}
+  \end{figure}
+
+  \begin{figure}[t]
+    \centering
+    \includegraphics[height=1.8in]{figures/plots/size_zipf}
+    \caption{Memcached throughput with varying table size. Zipfian access distribution.}
+    % \caption{Zipfian access distribution, $\alpha=1$. S: stock memcached.}
+  \label{f:memcached_tput_zipf}
+  \end{figure}
+
+To understand the performance of our delegated Memcached, we use the memtier benchmark client (version 1.4.0) with our delegated Memcached as well as stock memcached. 
+For the cleanest results, but without loss of generality, we configure memcached with a sufficiently large hash power and available memory to eliminate table resizing and evictions. 
+We also limit our evaluation to the conventional memcached PUT/GET operations.
+Recent versions of memcached feature a optional new cache eviction scheme, which trades less synchronization for the need for a separate maintenance thread. For stock memcached, we evaluated both the traditional eviction scheme and the new one. We show results for the new scheme, which scales much better for write-heavy workloads and is otherwise similar in our setting. For our ported version, we use the traditional eviction scheme, maintaining one LRU per shard. 
+Eviction is not relevant here, as we provide ample memory relative to the table size. 
+
+The server and client run on separate machines, connected by 100Gbps Mellanox-5 Ethernet interfaces via a 100Gbps switch. Both client and server machines are 28-core, two-socket systems with Intel {\it Sandy Bridge} CPUs and 256 GB of RAM. The machines run Ubuntu Linux with kernel version 5.15.0.
+Unless otherwise noted, we structure the experiments as follows: start a fresh {\tt memcached} instance. Populate the table with the indicated number of key-value pairs, then run measurements with 1\% writes, 5\% writes, and 10\% writes. 
+After this, we start over with a new, empty {\tt memcached} instance. Each data point represents a single experiment, each set to last 20 seconds. For each, unless otherwise noted, we choose {\tt memcached} and {\tt memtier} parameters to maximize throughput. 
+By default, this means 28 {\tt memcached} threads pinned to hardware threads 0--27. Running with 56 hardware threads did not yield any further performance improvement.
+On the memtier side, we configure 28 threads, with four clients per thread, and pipelining set to 48.
+
+Figures \ref{f:memcached_tput}--\ref{f:memcached_tput_zipf} illustrates the throughput of {\tt memcached} as we vary the number of keys in the table. 
+While the absolute numbers are significantly lower than in the microbenchmarks and the key-value store, the overall picture from {\tt memcached} corresponds well with previous experiments. 
+
+Using \trust{} results in performance improvements of more than 5$\times$ when accessing popular objects, 
+whether this popularity is due to a uniform access distribution across a smaller number of keys, or a Zipfian distribution over millions of of key-value pairs. 
+When all items are accessed infrequently, locking suffers very little contention, and has the advantage of better distributing the work across cores. Here, this results in performance competitive with delegation, at least for read-heavy workloads.
+
+The stock version is heavily affected by writes, due to the extra work required for these operations. This includes memory allocation, LRU updates as well as table writes, all of which involve synchronization in a lock-based design. With \trust{}, all such operations are local to the shard/trustee, and do not require synchronization.  
+With 5\% of writes, stock memcached loses $\approx$40\% of its performance, while the \trust{} version sees only a minor performance penalty, resulting in delegation outperforming locking in this setting for the entire range of table sizes. While not shown, this trend continues with even more writes.%, yielding as much as \je{XXX} higher performance for 100\% writes. 

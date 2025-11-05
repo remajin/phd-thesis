@@ -10,7 +10,7 @@ set xrange [0:*]
 #set style histogram clustered
 
 
-plot "~/thesis/figures/data/erpc_throughput_r6615.txt" u 2:4 with linespoint dashtype 2 pointtype 1 title "erpc",\
+plot "~/thesis/figures/data/erpc_throughput_r6615.txt" u 2:4 with linespoint dashtype 1 pointtype 1 title "erpc",\
 	"~/thesis/figures/data/mpi_echo.txt" u 2:4 with linespoint dashtype 1 pointtype 4 title "mpi",\
 	"~/thesis/figures/data/gsm_echo.txt" u 2:8 with linespoint dashtype 1 pointtype 6 title "gsm"
 	# "m3.txt" u 3:2 with linespoint title "m3",\
