@@ -9,5 +9,6 @@ Threads: 192 MOPs: 273.744 req_size: 128
 Threads: 192 MOPs: 191.561 req_size: 256
 Threads: 192 MOPs: 119.76 req_size: 512
 Threads: 192 MOPs: 72.2745 req_size: 960
-Threads: 192 MOPs: 0.0378132 req_size: 1024
-Threads: 192 MOPs: 0.0167173 req_size: 2048
+Threads: 192 MOPs: 50.827 req_size: 1024
+Threads: 192 MOPs: 26.8608 req_size: 2048
+Threads: 192 MOPs: 13.8759 req_size: 4096

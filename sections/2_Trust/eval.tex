@@ -1,22 +1,19 @@
 \section{Evaluation}
 \label{s:eval} 
 
-\begin{figure*}
-  \begin{subfigure}[t]{.8\textwidth}
-    \centering
-\includegraphics[height=1.8in]{figures/plots/throughput_manyvars}
-\caption{Uniform access distribution. }
-\label{f:fna_variables}
-\end{subfigure}
-\begin{subfigure}[t]{.8\textwidth}
+\begin{figure*}[ht]
   \centering
-  \includegraphics[height=1.8in]{figures/plots/throughput_manyvars_zipf}
-  \caption{Zipfian access distribution, $\alpha=1$.}
-  \label{f:fna_variables_zipf}
-\end{subfigure}
-\caption{Fetch-and-add throughput vs. object count. \trust{} is substantially better than locks in congested settings,
-and matches lock performance in uncongested settings. TCLocks were not found to be competitive.}
+  \includegraphics[width=0.8\textwidth]{figures/plots/throughput_manyvars}
+  \caption{Fetch-and-add throughput vs. object count. Uniform access distribution. }
+  \label{f:fna_variables}
 \end{figure*}
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/plots/throughput_manyvars_zipf}
+  \caption{Fetch-and-add throughput vs. object count. Zipfian access distribution, $\alpha=1$.}
+  \label{f:fna_variables_zipf}
+\end{figure*}
+
 
 
 Below, we evaluate the performance of \trust{} in two ways: 1) on both microbenchmarks, designed to stress test the core mechanisms behind \trust{} and locking, and 2) on end-to-end application benchmarks,
@@ -28,7 +25,7 @@ For our first microbenchmark, we use a basic fetch-and-add application. Here, a 
 In this section, each data point is the result of a single run.
 
 Below, we primarily evaluate on a two-socket Intel Xeon CPU Max 9462, of the Sapphire Rapids architecture. This machine has a total of 64 cores, 128 hyperthreads, and 384 GB of RAM. Unless otherwise noted, we use 128 OS threads. In testing, several older x86-64 ISA processors have shown similar trends -- these results are not shown here.
- For locking solutions, we use standard Rust {\tt Mutex<T>} and the spinlock variant provided by the Rust {\tt spin-rs-0.9.8} crate, as well as MCSLock<T> provided by the Rust {\tt synctools-0.3.2} crate. For {\tt Trust<T>}, we show results for blocking delegation (Trust) as well as nonblocking delegation (Async).
+ For locking solutions, we use standard Rust {\tt Mutex<T>} and the spinlock variant provided by the Rust {\tt spin-rs-0.9.8} crate, as well as MCSLock$<$T$>$ provided by the Rust {\tt synctools-0.3.2} crate. For {\tt Trust<T>}, we show results for blocking delegation (Trust) as well as nonblocking delegation (Async).
 In Fig. \ref{f:fna_variables}, we also include TCLocks, a recent combining approach offering a transparent replacement for standard locks, via the Litl lock wrapper \cite{litl} for {\tt pthread\_mutex}. 
 To be able to evaluate this lock, we wrote a separate C microbenchmark, matching the Rust version. In the interest of an apples-to-apples comparison, we first verified that the reported performance with stock {\tt pthread\_mutex} on the C microbenchmark matched the Rust {\tt Mutex<T>} performance in our Rust microbenchmark.
 
@@ -56,23 +53,19 @@ Moreover, we struggled to apply TCLocks to memcached (which consistently crashed
 
 %For \trust{}, performance increases with the number of objects until it reaches the number of trustees. After that, there is not much benefit to having more objects, except for distributing work evenly between trustees. 
 
-\begin{figure*}[t]
-  \begin{subfigure}[t]{.8\textwidth}
-    \centering
-  \includegraphics[height=1.8in]{figures/plots/latency_vs_load}
-  \caption{Uniform access distribution.}
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/plots/latency_vs_load}
+  \caption{Mean latency vs. offered load. Uniform access distribution.}
   \label{f:latency_vs_load}
-  \end{subfigure}
-  \begin{subfigure}[t]{.8\textwidth}
-    \centering
-    \includegraphics[height=1.8in]{figures/plots/latency_vs_load_zipf}
-    \caption{Zipfian access distribution, $\alpha=1$.}
-    \label{f:latency_vs_load_zipf}
-    \end{subfigure}
-    \caption{Mean latency vs. offered load. In low-load settings, delegation incurs higher latency than locking. However, latency remains much more stable with increasing load. 
-    The near-vertical lines show unbounded latency as capacity is reached.  
-    }
-  \end{figure*}
+\end{figure*}
+
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/plots/latency_vs_load_zipf}
+  \caption{Mean latency vs. offered load. Zipfian access distribution, $\alpha=1$.}
+  \label{f:latency_vs_load_zipf}
+\end{figure*}
 
 \subsubsection{Skewed Access Pattern: Zipfian distribution}
 
@@ -129,40 +122,32 @@ It's also worth noting the difference between 8 dedicated trustees, and 64 trust
 \subsection{Concurrent key-value store}
 \label{s:kvstore}
 
-\begin{figure*}[t]
+\begin{figure*}[ht]
   \centering
-  \begin{subfigure}[t]{.8\textwidth}
-      \centering
-      \includegraphics[height=1.8in]{figures/plots/var-keyspace-uniform.pdf}
-      \caption{Uniform access distribution}
-      \label{f:kvstore_tput}
-  \end{subfigure}
-  \begin{subfigure}[t]{.8\textwidth}
-      \centering
-      \includegraphics[height=1.8in]{figures/plots/var-keyspace-zipfian.pdf}
-      \caption{Zipfian access distribution}
-      \label{f:kvstore_tput_zipf}
-  \end{subfigure}
-
-  \caption{Key-value store throughput, with 5\% writes and varying table size.}
+  \includegraphics[width=0.8\textwidth]{figures/plots/var-keyspace-uniform.pdf}
+  \caption{Key-value store throughput, with 5\% writes and varying table size. Uniform access distribution}
+  \label{f:kvstore_tput}
 \end{figure*}
 
-\begin{figure*}[t]
+\begin{figure*}[ht]
   \centering
-  \begin{subfigure}[t]{0.8\textwidth}
-      \centering
-      \includegraphics[height=1.8in]{figures/plots/var-write-uniform.pdf}
-      \caption{Uniform access distribution}
-      \label{f:kvstore_tput_writes}
-  \end{subfigure}
-  \begin{subfigure}[t]{0.8\textwidth}
-      \centering
-      \includegraphics[height=1.8in]{figures/plots/var-write-zipfian.pdf}
-      \caption{Zipfian access distribution}
-      \label{f:kvstore_tput_writes_zipf}
-  \end{subfigure}
+  \includegraphics[width=0.8\textwidth]{figures/plots/var-keyspace-zipfian.pdf}
+  \caption{Key-value store throughput, with 5\% writes and varying table size. Zipfian access distribution}
+  \label{f:kvstore_tput_zipf}
+\end{figure*}
 
-  \caption{Key-value store throughput, with varying write percentage.}
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/plots/var-write-uniform.pdf}
+  \caption{Key-value store throughput, with varying write percentage. Uniform access distribution}
+  \label{f:kvstore_tput_writes}
+\end{figure*}
+
+\begin{figure*}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/plots/var-write-zipfian.pdf}
+  \caption{Key-value store throughput, with varying write percentage. Zipfian access distribution}
+  \label{f:kvstore_tput_writes_zipf}
 \end{figure*}
 
 For a more complete end-to-end evaluation, we implement a simple TCP-based key-value store, backed by a concurrent dictionary.
@@ -276,20 +261,20 @@ In addition, we introduced approximately 350 new lines of Rust code, to provide 
 
 \subsection{Evaluation}
 %\begin{figure*}
-\begin{figure}[t]
+\begin{figure}[ht]
   \centering
-\includegraphics[height=1.8in]{figures/plots/size}
+  \includegraphics[width=0.8\textwidth]{figures/plots/size}
   \caption{Memcached throughput with varying table size. Uniform access distribution. S: stock memcached. }
   \label{f:memcached_tput}
-  \end{figure}
+\end{figure}
 
-  \begin{figure}[t]
-    \centering
-    \includegraphics[height=1.8in]{figures/plots/size_zipf}
-    \caption{Memcached throughput with varying table size. Zipfian access distribution.}
-    % \caption{Zipfian access distribution, $\alpha=1$. S: stock memcached.}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/plots/size_zipf}
+  \caption{Memcached throughput with varying table size. Zipfian access distribution.}
+  % \caption{Zipfian access distribution, $\alpha=1$. S: stock memcached.}
   \label{f:memcached_tput_zipf}
-  \end{figure}
+\end{figure}
 
 To understand the performance of our delegated Memcached, we use the memtier benchmark client (version 1.4.0) with our delegated Memcached as well as stock memcached. 
 For the cleanest results, but without loss of generality, we configure memcached with a sufficiently large hash power and available memory to eliminate table resizing and evictions. 

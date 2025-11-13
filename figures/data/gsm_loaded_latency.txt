@@ -1,0 +1,16 @@
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 20.57 load: 150 batch_size: 1 min: 0 max: 24015 50th: 6 99th: 14 99.9th: 19 99.99th: 612
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 26.73 load: 150 batch_size: 2 min: 0 max: 27487 50th: 7 99th: 17 99.9th: 23 99.99th: 1203
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 32.72 load: 150 batch_size: 4 min: 0 max: 28703 50th: 9 99th: 21 99.9th: 27 99.99th: 1007
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 37.55 load: 150 batch_size: 8 min: 0 max: 19631 50th: 11 99th: 24 99.9th: 31 99.99th: 1003
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 40.44 load: 150 batch_size: 16 min: 0 max: 49503 50th: 14 99th: 29 99.9th: 36 99.99th: 1100
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 53.71 load: 150 batch_size: 32 min: 1 max: 42943 50th: 19 99th: 35 99.9th: 43 99.99th: 1249
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 64.36 load: 150 batch_size: 48 min: 1 max: 46303 50th: 23 99th: 40 99.9th: 48 99.99th: 1184
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 72.40 load: 150 batch_size: 64 min: 1 max: 59519 50th: 24 99th: 44 99.9th: 51 99.99th: 1015
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 79.91 load: 150 batch_size: 80 min: 1 max: 34783 50th: 27 99th: 50 99.9th: 56 99.99th: 1160
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 83.33 load: 150 batch_size: 96 min: 1 max: 33087 50th: 29 99th: 55 99.9th: 61 99.99th: 897
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 92.53 load: 150 batch_size: 112 min: 1 max: 23551 50th: 31 99th: 60 99.9th: 66 99.99th: 1229
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 98.57 load: 150 batch_size: 128 min: 1 max: 21871 50th: 32 99th: 63 99.9th: 69 99.99th: 1244
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 103.88 load: 150 batch_size: 160 min: 1 max: 59711 50th: 32 99th: 69 99.9th: 77 99.99th: 1250
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 109.67 load: 150 batch_size: 192 min: 1 max: 33727 50th: 35 99th: 76 99.9th: 84 99.99th: 1256
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 115.84 load: 150 batch_size: 224 min: 1 max: 20783 50th: 38 99th: 84 99.9th: 93 99.99th: 1212
+kthread_count: 32 trustee_count 32 var_count: 32 MOPs: 119.02 load: 150 batch_size: 256 min: 2 max: 20575 50th: 41 99th: 91 99.9th: 102 99.99th: 1121

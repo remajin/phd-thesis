@@ -1,11 +1,11 @@
 set  terminal "pdfcairo" enhanced size 6,4 mono
 set out "~/thesis/figures/plots/echo_tput_reqsize_r6615.pdf"
-set xlabel "number of threads"
+set xlabel "Request size in bytes"
 set ylabel "throughput (MOPs)" enhanced
 set key horizontal outside
-set yrange [0:500]
-set xrange [0:*]
-# set logscale xy 2
+# set yrange [0:500]
+# set xrange [0:*]
+set logscale xy 2
 #set style data histogram
 #set style histogram clustered
 

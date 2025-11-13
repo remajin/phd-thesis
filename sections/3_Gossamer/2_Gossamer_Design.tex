@@ -42,7 +42,7 @@ like any other normal process. The main difference would be that instead of usin
 \subsection{Trustee, Trust and Property}
 \input{figures/trustntrustee}
 
-Gossamer builds on the Trust/Trustee concept from \cite{trustreport}, which we introduce briefly here. A 
+Gossamer builds on the Trust/Trustee concept from \cite{ahmad2024trust}, which we introduce briefly here. A 
 \textit{Trustee} is a worker fiber that processes delegation requests and sends back the response. The 
 application can entrust some data to a trustee if the delegated work needs access to it and receive a 
 \textit{Trust} that holds relevant metadata. This entrusted data is referred to as \textit{Property}. The 
@@ -96,39 +96,6 @@ contain pointers internally. To get around that \name{} prvides a way to send an
 serialized along with the closure as an extra parameter to the delegated closure. If the programmer makes a 
 mistake and tries to use a closure that has captured a reference for delegation, a custom error message at 
 compile time will inform them what the issue is and direct them to use the serialization method instead.
-
-\subsection{Reference counting for Trusts}
-Trusts in \name{} act as rust smart pointers that own the property, since they can be used to access and 
-modify the property behind them. This means that we need to make sure that when all of the trusts are dropped, 
-the property is also dropped and the associated memory is freed so as not to have memory leakage. To acheive 
-that trusts need to be reference counted, but a naive integer count will not suffice due to a combination of 
-the following two issues.
-
-\begin{itemize}
-	\item \name{} does not support a blocking delegation operation when in the middle of another delegation 
-	request. For example calling \textit{apply} on a trust from within a closure that itself is used for 
-	delegation will cause the system to hang and never finish.
-	\item If the integer used for counting references, let's call it refcount, is incremented and decremented 
-	asynchronously, i.e. with a nonblocking delegation call, it could lead to use after free bugs. Let's 
-	consider the following scenario: Thread A clones a trust with only one reference and sends an async request 
-	to increment its refcount. The cloned trust is then sent to Thread B that drops it, sending another async 
-	request to decrement its refcount. While the requests issued by the same fiber are guaranteed to be 
-	completed in the same order they are issued, there is no such guaranty across multiple threads or even 
-	fibers. It is entirely possible that the decrement request is processed first, making the refcount zero, 
-	which results in the property being dropped. Thread A however still has a valid trust to this property 
-	which it can use, expecting the property to still be available.
-\end{itemize}
-
-Not being able to use async delegation to increment and decrement the refcount leads to not being able to clone 
-a trust from within a delegated context, which can quite restrictive. To get around that, \name{} uses a new 
-way to keep track of how many trusts are active at any time. Each trust is given a unique id at the time of 
-creation, be it a new trust or a clone of an existing one. Instead of just using an integer, \name{} uses a 
-set of these ids associated with each property. Instead of incrementing or decrementing the refcount, clone 
-and drop both issue a delegation request involving a symmetric difference operation. Symmetric difference 
-is defined as adding an element to a set if it is not already a member, and removing it from the set if it is. 
-This way, regardless of the order in which requests originating in clone and drop are processed, the first one 
-will add the trust id to the set and later one will remove it, allowing us to use async delegation for both. 
-This, in turn, enables us to clone a trust within a delegated context.
 
 \subsection{Request size and TCP fallback}
 \label{s:tcp_fallback}
@@ -219,6 +186,30 @@ since large requests are not the focus of this work.
 % \input{figures/resp_mem_layout}
 % \input{figures/mem_layout}
 
+The clients and trustees on a single machine share memory, so a client can prepare the whole request slot in a 
+pre-designated place and then flip the ready bit at the end to signal the trustee that it is ready. The trustee 
+continuously polls this piece of memory too determin the arrival of new requests. This leads to $num\_threads^2 
+\times sizeof(reques\_slot)$ bytes of memory being reserved for request slots. Same for response slots as well.
+We can think of that as a \textit{square} in memory with $num\_threads$ side length. When we move on to a 
+distributed setting, we can extend this \textit{squre} to have $num\_threads \times num\_machines$ side length.
+The whole of the bigger \textit{square} does not need to be allocated on each machine as that would waste memory.
+Instead parts of it are allocated on each machine. \ref{fig:req_mem_layout} shows an example layout for a system 
+with three machines that have three system threads each for a total of nine threads. In the figure, each cell 
+represents a request slot going from a source thread to a destination thread as labeled and horizontal
+rows represent memory that is physically contigous while different colors divide the \textit{square} based on which 
+machine the memory is allocated on. Here, unlike in a single machine setting, there are two \textit{squares}. 
+Clients on one machine need to prepare the requests in local memory before writing the request slot to the trustee's 
+memory on another machine. Theoratically, RDMA allows the clients to write the requests in the trustee's memory as
+they come and flip th ready bit once the slot is full similar to single machine channel, however this would result 
+in many small RDMA write operations, reducing the effectiveness of batching and sinking the performance. 
+
+From the perspective of the whole rack as a single system, each row of request slots in the client memory 
+\textit{square} maps to a column in the trustee memory \textit{square}. For example a request slot going from 
+thread 1 (thread 1, machine 1) to thread 7 (thread 1 machine 3) is prepared in memory represented by the cell in
+row one and column seven in client memory \textit{square} and then written to the cell in row seven and column one
+in trustee memory \textit{square} and so on. \ref{fig:req_mem_layout} also shows a few additional examples. There 
+is a similar system in place for responsee slots as well.
+
 \subsection{Scaling impact of increasing number of Queue Pairs}
 
 \input{figures/qp_scaling_6m_r6615}
@@ -228,12 +219,12 @@ pair only needs to have a single QP resulting in $num\_machines^2$ QPs. However,
 many threads. The QPs use a spin lock internally to mack sure QPs can shared safely but that results in threads
 having to wait for each other before they can send requests to a trustee. A better but naive design might be
 to have a QP for every pair of system threads in the whole rack resulting in QPs in the order of 
-$(num\_machines*num\_threads\_per\_machine)^2$. This also resluts in lost performance due to NIC cache 
+$(num\_machines \times num\_threads\_per\_machine)^2$. This also resluts in lost performance due to NIC cache 
 limitation. The NIC caches any recently used QPs, along with page mappings for any recently used pinned pages
 in its SRAM. Increasing the number of QPs resluts in NIC running out of SRAM, which in turn results in cache 
 misses. We use a middle of the road system where instead of each thread making a separate QP for every other 
 thread, it makes a QP for each machine in the rack. This reduces the total number of QPs in the system to 
-$num\_machines^2*num\_threads\_per\_machine$. \ref{fig:qp_scaling_6m} shows an experiment that demonstrates the performance 
+$num\_machines^2 \times num\_threads\_per\_machine$. \ref{fig:qp_scaling_6m} shows an experiment that demonstrates the performance 
 gained by reducing the number of QPs in the system. This experiment was performed with 6 machines, all connected
 to switch with 100Gb/s ethernet links. Each thread writes 256 bytes in a randomly chosen remote thread's 
 memory twenty million times. As the number of threads increases, thereby increasing the number of QPs, the 
