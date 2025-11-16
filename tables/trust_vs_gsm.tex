@@ -1,0 +1,40 @@
+\begin{table}
+
+\begin{subtable}[t]{1\textwidth}
+\centering
+\begin{lstlisting}
+fn main() {
+    let pool = Threadpool::new(4);
+    let property = HashMap::new();
+    let trust = pool.entrust(property);
+    pool.spawn(|| {
+        trust.apply(|property| property.insert(``Greeting'',``Hello''));
+    });
+}
+\end{lstlisting}
+\caption{A small example of delegation code with \trust{}}
+\label{tab:delegationexample1}
+\end{subtable}
+		
+\begin{subtable}[t]{1\textwidth}
+\centering
+\begin{lstlisting}
+fn main() {
+    gossamer::main(gsm_main, 4);
+}
+
+fn gsm_main() {
+    let property = HashMap::new();
+    let trust = gossamer::entrust(property);
+    gossamer::spawn(|| {
+        trust.apply(|property| property.insert(``Greeting'',``Hello''));
+    });
+}
+\end{lstlisting}
+\caption{A small example of delegation code with \name{}}
+\label{tab:delegationexample2}
+\end{subtable}
+
+\caption{\trust{} vs \name{} code example}
+\label{tab:trust_vs_gsm}
+\end{table}

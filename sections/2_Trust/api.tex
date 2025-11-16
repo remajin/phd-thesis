@@ -93,18 +93,18 @@ To avoid this risk, {\tt launch()} is implemented only for {\tt Trust<Latch<T>{>
 {\tt Latch<T>} is a wrapper type which provides mutual exclusion, analogous to {\tt Mutex<T>} except that it uses no atomic instructions, and thus may only be accessed by the fibers of a single thread.\footnote{In Rust terms, {\tt Latch<T>} does not implement {\tt Sync}.}
 %More on nested blocking delegation requests in \S\ref{s:nested}.
 
-% \subsubsection{Leveraging Rust for safe and efficient delegation}
-% \label{s:noref}
+\subsubsection{Leveraging Rust for safe and efficient delegation}
+\label{s:noref}
 
-% Using the Rust type system, we ensure that delegated closures in \trust{} cannot capture values that contain any references or pointers. 
+Using the Rust type system, we ensure that delegated closures in \trust{} cannot capture values that contain any references or pointers. 
 
-% In principle, this is far stricter than what is necessary: the existing and pervasive Rust traits {\tt Send} and {\tt Sync} already describe
-% the types that may be safely moved and shared between threads, and this continues to hold within \trust{}. 
+In principle, this is far stricter than what is necessary: the existing and pervasive Rust traits {\tt Send} and {\tt Sync} already describe
+the types that may be safely moved and shared between threads, and this continues to hold within \trust{}. 
 
-% That said, safety does not guarantee performance. A common performance pitfall when writing delegation-based software is 
-% memory stalls on the trustee, which affects trustees disproportionately due to the polling nature of the delegation channel (see \S\ref{s:delegating}). Frequent cache misses and use of atomic instructions in delegated closures can substantially degrade trustee throughput vs. running closures with good memory locality. 
+That said, safety does not guarantee performance. A common performance pitfall when writing delegation-based software is 
+memory stalls on the trustee, which affects trustees disproportionately due to the polling nature of the delegation channel (see \S\ref{s:delegating}). Frequent cache misses and use of atomic instructions in delegated closures can substantially degrade trustee throughput vs. running closures with good memory locality. 
 
-% Generally speaking, cache line contention and use of atomic instructions are a natural result of sharing memory between threads. By prohibiting the capture of references and pointers, \trust{} makes accidental shared memory patterns of programming much less likely in delegated code, and encourage pass-by-value practices. 
+Generally speaking, cache line contention and use of atomic instructions are a natural result of sharing memory between threads. By prohibiting the capture of references and pointers, \trust{} makes accidental shared memory patterns of programming much less likely in delegated code, and encourage pass-by-value practices. 
 
 \subsubsection{Variable-size and other heap-allocated values}
 
