@@ -88,7 +88,7 @@ Next we measure mean latency for a scenario with 64 objects (uniform access dist
 We show delegation results with 8 dedicated trustee cores, and with 64 shared trustee cores\footnote{The evaluation system has 64 cores, 128 hardware threads. In the vast majority of cases, having both hardware threads of each core work as trustees results in reduced performance.}.
 We also plot the results for a spinlock, a standard Rust mutex, and an MCS lock as above. 
 
-At low load, low contention results in low latency for locking, a ideal situation for locks.
+At low load, low contention results in low latency for locking, an ideal situation for locks.
 %For low load, there is little lock contention, which results in low latency for locking. 
 %This latency is representative of an ideal use case for locks. 
 However, as load increases, the locks eventually reach capacity, resulting in a rapid rise in latency. 

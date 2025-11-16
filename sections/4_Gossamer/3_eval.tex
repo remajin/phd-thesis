@@ -5,7 +5,7 @@ In this section we use microbenchmarks to evaluate \name{} on throughput and lat
 benchmarks to evaluate how \name{} performs in the real world. These experiments were performed on the r6615 
 cluster from Cloudlab Clemson using 12 machines. Each machine here uses AMD EPYC 9354P CPU and has 32 threads 
 over four NUMA nodes at 3.3 GHz. We do not use hyperthreading for this experiment. Each machine has 100 Gbps 
-Mellanox ConnectX-6 interfaces and connected to a Dell Z9432 switch. These machines are equipped with 188GB RAM 
+Mellanox ConnectX-6 interfaces and connected to a Dell Z9432 switch. These machines are equipped with 188 GB RAM 
 each and are running Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-160-generic x86\_64).
 
 
@@ -16,22 +16,22 @@ We use an echo application to evaluate the throughput scaling of \name{} as the 
 increases. For this experiment, each trustee/server sends the same data it received as a response. Each thread 
 acts as both client and server. Clients choose a server at random form a uniform distribution and send a request 
 containing 32 bytes of data. Each client sends ten million asynchronous echo requests. We compare against eRPC 
-\cite{225980} and an mpi library used and developed by graph500 reference benchmark \cite{g500}.
+\cite{225980} and an MPI library used and developed by graph500 reference benchmark \cite{g500}.
 
 \ref{fig:echo_tput} shows the results of our experiment. Here we use 16 threads per machine as the eRPC benchmark
 only supports up to two NUMA nodes. Each successive data point has one more machine than the previous one, resulting 
 in an increment of 16 threads. eRPC starts with 2.9 MOPs per thread and maintains that as more threads are
 added. This is in line with their reported performance in a github issue \cite{erpc_issue} for two machines 
 connected with a 100 Gbps connection. \name{} starts with double the throughput and scales 3x better than eRPC.
-Similarly, though the mpi application starts out performing better than \name{}, it falls behind quickly as the 
+Similarly, though the MPI application starts out performing better than \name{}, it falls behind quickly as the 
 number of machines increases. 
 % This is because MPI is not well suited to continously sending asynchronous requests 
 % back and forth with no other work being done in between.
 
 \input{figures/echo_tput_reqsize_r6615}
 
-\ref{fig:echo_reqsize} shows the performance of all three systems across a range of request sizes. The mpi system 
-perfroms better than both \name{} and eRPC due to smaller request headers, however as the request size 
+\ref{fig:echo_reqsize} shows the performance of all three systems across a range of request sizes. The MPI system 
+performs better than both \name{} and eRPC due to smaller request headers, however as the request size 
 increases, this advantage becomes negligible and the other systems overtake it. All three systems experience a 
 drop in the number of requests served as the request size increases, however \name{} experiences a particularly 
 steep drop as it cross th 1KB threshold. This is explained by the TCP fallback for large requests as discussed 
@@ -40,14 +40,14 @@ in section \ref{s:tcp_fallback}.
 \subsection{Microbenchmark: Latency}
 \input{figures/erpc_vs_gsm_loaded_latency}
 
-Next we evaulate 99.9th percentile latency under load for eRPC and \name{}. We exclude the mpi application from 
+Next we evaluate 99.9th percentile latency under load for eRPC and \name{}. We exclude the mpi application from 
 this experiment as the mpi library we use is highly optimized for throughput at the cost of latency, resulting in 
-it not being competetive. This experiment also uses the echo application with a request size of 32 bytes. As both 
+it not being competitive. This experiment also uses the echo application with a request size of 32 bytes. As both 
 \name{} and eRPC use batching for asynchronous requests, load here is represented by the number of outstanding 
-requests at any givern time.
+requests at any given time.
 
 \ref{fig:erpc_gsm1} shows the results of this experiment. Each data point here represents a doubling of batch 
-size untill 32 and then an increment of 16. Both system have increased throughput and latency as the number of 
+size until 32 and then an increment of 16. Both system have increased throughput and latency as the number of 
 outstanding requests increases, however eRPC does better at smaller loads in terms of both latency and throughput. 
 This is because of the optimizations discussed in \ref{sg:slots}, that result in better performance at higher 
 load at the cost of small performance penalty at lower loads, along with the overhead of switching fibers being 
@@ -67,7 +67,7 @@ algorithmic differences negligible. The graphs for these experiments were genera
 of kronecker generator with an edge factor of 32. For each experiment we ran sssp on eight randomly chosen source 
 nodes and report the average time taken per run.
 
-\ref{fig:sssp_threads_n27} shows the results of SSSP on a graph with $2^{27}$ nodes and and average degree of 32, 
+\ref{fig:sssp_threads_n27} shows the results of SSSP on a graph with $2^{27}$ nodes and average degree of 32, 
 as the size of the cluster increases. Each successive data point increments the thread count by 32. Despite 
 graph500 being a highly specialized application designed to benchmark supercomputers, \name{} is able to keep up
 with it. Similarly, \ref{fig:sssp_size} shows \name{} achieving comparable performance to graph500 across a range 

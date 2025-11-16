@@ -7,7 +7,7 @@ lock, in which there are no efficiency losses due to contention. Here, the {\it 
 critical section is the sum of (a) any wait for the lock to be released, (b) the cost of acquiring the lock, 
 (c) executing the critical section, and (d) releasing the lock. Not counting any re-acquisitions on the same 
 core, this must be at minimum one cache miss per critical section, in sequential cost. To make matters worse, 
-this cache miss is incurred by an atomic instruction, effectively stallign the CPU until the cache miss is 
+this cache miss is incurred by an atomic instruction, effectively stalling the CPU until the cache miss is 
 resolved (and in the case of a spinlock, until the lock is acquired).
 
 Two main solutions to this problem exist. First, where the data structure permits, fine-grained locking can be 

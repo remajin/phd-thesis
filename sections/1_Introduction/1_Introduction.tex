@@ -4,7 +4,7 @@ model for both concurrent and distributed computing. We present two system, \tru
 
 \trust{} introduces a type- and memory-safe alternative to traditional locking in concurrent
 programs. Instead of synchronizing multi-threaded access to an object of type T with a lock,
-it can be encapsulated in a \trust{}. with a designated trustee thread handling all operations
+it can be encapsulated in a \trust{} with a designated trustee thread handling all operations
 through message passing. This delegation-based model eliminates per-lock throughput
 limitations, achieving up to 22x higher throughput in microbenchmarks and 5-9x
 improvement for a key-value store in high-contention workloads, while remaining

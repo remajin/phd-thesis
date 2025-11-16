@@ -54,7 +54,7 @@ if the bit differs from the {\tt ready} bit in the corresponding response slot, 
 By default, the slot size is 1152 bytes, and the client may submit as many closures as it can fit within the slot. Here, the minimum size of a request is 24 bytes: a 128-bit fat pointer for the closure, and a regular 64-bit pointer for the property.
 The captured environment of Rust closures have a known, fixed size, which is found in the vtable of the closure. 
 For typical small captured environments, this is copied into the request slot, and the pointer updated to point at the new location. 
-Serialized closure arguments are appendend next, followed by the next request. 
+Serialized closure arguments are appended next, followed by the next request. 
 
 Responses are handled in a similar fashion, though there is no minimum response size. 
 Responses are sent simultaneously for all the requests in the request slot. 
@@ -78,7 +78,7 @@ A two-part design accommodates a large number of requests (where needed), but im
 \subsection{Reference counting for Trusts}
 Trusts in \trust{} act as rust smart pointers that own the property, since they can be used to access and 
 modify the property behind them. This means that we need to make sure that when all of the trusts are dropped, 
-the property is also dropped and the associated memory is freed so as not to have memory leakage. To acheive 
+the property is also dropped and the associated memory is freed so as not to have memory leakage. To achieve 
 that trusts need to be reference counted, but a naive integer count will not suffice due to a combination of 
 the following two issues.
 

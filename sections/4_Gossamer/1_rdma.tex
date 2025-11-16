@@ -20,7 +20,7 @@ accessed without involving either of remote operating system or CPU. This is cal
 
 RDMA also provides \textit{Messaging Semantics} that use \textit{verbs} \textit{SEND} and \textit{RECV}. In 
 this case receiver has to post a \textit{RECV} \textit{verb} before the sender can send the data. In this 
-regard it is similar to an unbuffered sockets implementation. Just like \textit{Memory Semantics}, 
+regard it is similar to an unbuffered socket's implementation. Just like \textit{Memory Semantics}, 
 \textit{Messaging Semantics} also bypass the remote kernel but unlike \textit{Memory Semantics}, it has to 
 involve remote CPU to post a \textit{RECV}. These \textit{verbs} also have slightly lower latency than 
 \textit{READ}  and \textit{WRITE} \cite{180191,179767}.
@@ -42,7 +42,7 @@ send/receive queues are using. A work completion is generated for all receive re
 completion queue. For send requests the work completion is only generated if the signaled bit was set to true
 in the work request or the send request ended with an error. In case of reliable transport, a success for
 send requests indicates that the data has been written to the remote machine's memory. For unreliable 
-transport however, a success only means that the local buffers can be reused safely, with no indiation of 
+transport however, a success only means that the local buffers can be reused safely, with no indication of 
 the remote memory's status. A successful work completion also indicates that any unsignaled work posted 
 earlier has finished successfully \cite{pollcq}. \name{} uses RC QPs to ensure any data loss in the network is caught.
 We also use the cumulative nature of work completion successes to our advantage by not using signaled send 

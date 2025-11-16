@@ -3,7 +3,7 @@
 
 \trust{} is a general, type- and memory-safe alternative to locking in concurrent programs. Instead of 
 synchronizing multi-threaded access to an object of type T with a lock, the programmer may place the object in 
-a \trust{}. The object is then no longer directly accessible. Instead a designated thread, the object's {\it 
+a \trust{}. The object is then no longer directly accessible. Instead, a designated thread, the object's {\it 
 trustee}, is responsible for applying any requested operations to the object, as requested via the \trust{} API.
  
 While locking offers a limited throughput {\it per lock}, \trust{} is based on delegation, a 
@@ -18,9 +18,9 @@ in situations with high lock contention. Moreover, \trust{} is competitive with 
 contention. 
 
 % \setcounter{table}{0}
-\input{sections/2_Trust/1_Intro}
-\input{sections/2_Trust/back}
-\input{sections/2_Trust/basics}
-\input{sections/2_Trust/api}
-\input{sections/2_Trust/design}
-\input{sections/2_Trust/eval}
+\input{sections/3_Trust/1_Intro}
+% \input{sections/3_Trust/back}
+\input{sections/3_Trust/basics}
+\input{sections/3_Trust/api}
+\input{sections/3_Trust/design}
+\input{sections/3_Trust/eval}

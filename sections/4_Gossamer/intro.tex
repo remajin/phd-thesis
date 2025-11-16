@@ -20,7 +20,7 @@ One inherent problem that restricts performance in distributed settings is the h
 traversal. \name{} overcomes that by using RDMA. RDMA provides sub-micro second one way latency that is comparable 
 to that of permanent storage on single machine. While RDMA solves the problem with high latency, it does not scale 
 well with increasing number of connections per machine. To solve this \name{} establishes only one connection per 
-hardware thread for each remote machine in the rack and uses light weight user space threads called fibers to 
+hardware thread for each remote machine in the rack and uses lightweight user space threads called fibers to 
 utilize the available throughput to full extent.
 
 The primary contributions of this paper are as follows:

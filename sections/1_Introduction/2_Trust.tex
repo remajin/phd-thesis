@@ -1,6 +1,6 @@
 \section{\trust{}}
 We present \trust{} (pronounced {\it trust-tee}), a programming abstraction and runtime system which 
-provides safe, high-performance access to a shared object (or $property$) of type $T$.Briefly, a \trust{} 
+provides safe, high-performance access to a shared object (or $property$) of type $T$. Briefly, a \trust{} 
 provides a family of functions of the form: $$apply(c:FnOnce(\&mut~T)\rightarrow U)\rightarrow U,$$ which 
 causes the closure $c$ to be safely applied to the property (of type $T$), and returns the return value 
 (of type $U$) of the closure to the caller. Here, $FnOnce$ denotes a category of Rust closure types, and 

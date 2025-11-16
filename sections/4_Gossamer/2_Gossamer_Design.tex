@@ -17,7 +17,7 @@ interesting.
 \input{figures/process}
 
 As shown in \ref{fig:design}, each machine has \name{} daemon running. These daemons connect with each other to 
-discover the rack size and store metadat like gossamer-id, machine-ip etc. The daemon is responsible for 
+discover the rack size and store metadata like gossamer-id, machine-ip etc. The daemon is responsible for 
 managing any \name{} processes running on the rack at any time. To launch a \name{} application, users need to 
 run the application binary on the controller machine only. The application will contact the local daemon and tell 
 it to start the process specifying how many system threads the whole \name{} process should use. This daemon will 
@@ -34,9 +34,9 @@ function call a helper function from the \name{} library and pass a function tha
 \textit{main} function along with how many threads the application needs to use across the whole rack. This 
 function will be referred to as \textit{gsm\_main} for the rest of the paper. The process consists of many 
 fibers per system thread for concurrent operation as shown in \ref{fig:process}. Fibers are lightweight, 
-userspace threads that can spawn on any system thread that is part of the \name{} process, and on any machine 
+user space threads that can spawn on any system thread that is part of the \name{} process, and on any machine 
 in the rack. Fibers that need to access shared data make delegation requests consisting of closures that modify 
-the data as needed. From the point of view of th operating system, a single instance of \name{} process behaves 
+the data as needed. From the point of view of the operating system, a single instance of \name{} process behaves 
 like any other normal process. The main difference is that instead of using system calls like 
 \textit{getpid()}, a \name{} process contacts the daemon to get any metadata needed.
 \input{tables/trust_vs_gsm}
@@ -65,17 +65,17 @@ delegating fiber will wait for the response from the trustee before continuing. 
 delegating fiber will instead provide a callback closure to be executed upon completion of the request, and 
 continue without waiting. First we will describe the workflow for blocking delegation requests and then specify 
 how that differs from the nonblocking delegation. Each fiber issues a request that is put in a pending queue 
-before voluntarily yeilding the runtime. Each thread has a fiber that periodicaly checks for any incoming 
+before voluntarily yielding the runtime. Each thread has a fiber that periodically checks for any incoming 
 responses and sends any requests in the pending queue. As there will be many fibers running on each thread this 
 will allow the polling fiber to send multiple requests as a larger batch, increasing the throughput of the system. 
 The requests originating from a client that are destined for the same trustee are batched in a 
 \textit{RequestSlot} (discussed in detail in \ref{sg:slots}) that can hold a variable  number of requests depending 
 on their size. On the trustee side, one of the fibers is dedicated to polling for any incoming requests. Since any 
-incoming requests in a RequestSlot will be contigous in memory, it can complete all of them and then send all of 
+incoming requests in a RequestSlot will be contiguous in memory, it can complete all of them and then send all of 
 the responses in a single batch as well. Similar to requests, responses are batch using a \textit{ResponseSlot}. 
-The fiber that polls for reponses on the requesting thread will then process the responses and add the 
+The fiber that polls for responses on the requesting thread will then process the responses and add the 
 corresponding fibers back in to the ready to run queue. The main difference for async delegation is that instead 
-of yeilding after enqueuing the request, it just keeps going and enqueues any subsequent requests as well. This 
+of yielding after enqueuing the request, it just keeps going and enqueues any subsequent requests as well. This 
 fiber will yield the runtime when the pending queue is full, after which the response polling fiber can run and 
 send all of the requests to the respective trustees. Once it receives the responses, it can execute any callback 
 closures the user might have provided. This means that there is no benefit to having multiple fibers per thread 
@@ -94,26 +94,26 @@ a trait for every data type, be it an existing type or user defined. A negative 
 exclude a data type from the auto implementation. \name{} defines an auto trait called \textit{NoRef}. Then 
 all the types that contain a reference or raw pointer are given negative implementation. The function 
 \textit{apply}, that is used to send delegation messages as described in previous section, requires all the 
-closures to comply with the NoRef trait as shown in \ref{fig:trustntrustee}. This however limits severly what 
+closures to comply with the NoRef trait as shown in \ref{fig:trustntrustee}. This however limits severely what 
 type of data can be captured by any delegated closure as many frequently used types like strings and vectors 
-contain pointers internally. To get around that \name{} prvides a way to send any data type that can be 
+contain pointers internally. To get around that \name{} provides a way to send any data type that can be 
 serialized along with the closure as an extra parameter to the delegated closure. If the programmer makes a 
 mistake and tries to use a closure that has captured a reference for delegation, a custom error message at 
 compile time will inform them what the issue is and direct them to use the serialization method instead.
 
 \subsection{Request size and TCP fallback}
 \label{s:tcp_fallback}
-As described in \ref{s:del_flow}, the requsts going from a client thread to the same trustee will be batched and 
-on trustee side the requests coming from a single thread will all be contigous in memory. This is achieved by 
-the trustee having a pre-allocated sapce in memory (called requestSlot) for incoming requests from each client 
+As described in \ref{s:del_flow}, the requests going from a client thread to the same trustee will be batched and 
+on trustee side the requests coming from a single thread will all be contiguous in memory. This is achieved by 
+the trustee having a pre-allocated space in memory (called requestSlot) for incoming requests from each client 
 thread. This limits how many requests a client thread can send in a single batch depending on how much data is 
-being sent with each request. As an example if each request request captures 32 bytes of captured data, the 
+being sent with each request. As an example if each request captures 32 bytes of captured data, the 
 total request size is 40 bytes. Next section goes into detail about the format of a \name{} delegation request. 
-Assuming 1kB requestSlot, one batch can have at most 25 requests. While this allows us to optimize for small 
+Assuming 1 KB requestSlot, one batch can have at most 25 requests. While this allows us to optimize for small 
 requests it also places a hard limit on how much data a request can capture i.e. the size of the requestSlot. 
-To work aound this limit and support larger requests, \name{} uses TCP to send any captured data larger than 
+To work around this limit and support larger requests, \name{} uses TCP to send any captured data larger than 
 that separately, while the request header goes in the requestSlot as normal. This degrades the performance 
-severly as TCP is much slower than RDMA. We use TCP here instead of RDMA because, as mentioned in \ref{s:rdmaapi}, 
+severely as TCP is much slower than RDMA. We use TCP here instead of RDMA because, as mentioned in \ref{s:rdmaapi}, 
 RDMA needs the memory used to be pre-registered with the NIC, placing an upper limit on how much data can be sent 
 using RDMA at once, i.e. the size of pre-registered buffer. Since there would be an upper limit anyway and larger 
 requests are not the focus for \name{}, we decided to opt for the simpler design in place at the moment.
@@ -123,7 +123,7 @@ requests are not the focus for \name{}, we decided to opt for the simpler design
 
 \input{figures/req_slot}
 
-As discussed in the previos section, the number of requests sent in batch depends on the size of the requests 
+As discussed in the previous section, the number of requests sent in batch depends on the size of the requests 
 plus the size of any headers sent with the request. Section \ref{st:slots} describes the format of request and 
 response slots used for single machine delegation channel. Here we describe further optimizations made to request
 slots to minimize per request metadata to reduce wasted network bandwidth. The two-slot optimization of single 
@@ -141,7 +141,7 @@ The necessary parts to process a \name{} request are as follows:
 	\item Any serialized data.
 \end{itemize}
 
-While we can't avoid sending the captured data, serialized data and the propoerty pointer, \name{} employs 
+While we can't avoid sending the captured data, serialized data and the property pointer, \name{} employs 
 some strategies to minimize the information that needs to be sent inside the request slot. As the data pointer 
 within the closure is not going to be valid on a remote machine, there is no need to include that in the request. 
 Since the same binary is running on all the machines in the system, they all have access to any information 
@@ -152,7 +152,7 @@ table for a few vtable pointers in the request slot instead of including one wit
 with the start point of data received, the trustee can reconstitute the closure locally, removing the need to 
 send the closure in the request slot. If there are indeed more closures in the request slot than will fit in the 
 lookup table, any extras can be sent in the request slot. This will reduce the data being sent in the common 
-case with minimal overhead, but will be no more expensive in the special case. Similarly if the serialized data 
+case with minimal overhead, but will be no more expensive in the special case. Similarly, if the serialized data 
 has a size known at compile time the trustee already has access to it, so the only time it needs to be sent 
 with the request is if it is not known at compile time. One thing to note here is that we rely on same vtable 
 pointer to be the valid on all of the machines which is not the case normally due to linux address space 
@@ -160,31 +160,31 @@ layout randomization (ASLR), making disabling it a necessity for \name{} to func
 
 Similarly, the responses for all of the requests in a request slot are batched in a response slot and written to 
 the client's memory with a single RDMA write. Unlike a request however, the size of a response is not always known 
-when submitting a request. If the response size cannot be determined statically, it is preceeded by 8 bytes that 
-contain its size. While a known response size can be used to limit the number of requests in a reqest slot just 
-like the size of requests, unkown size responses can lead to scenarios where not all of the responses for a 
-request slot fitin a single response slot. In such cases the trustee will send anything that doesn't fit in the 
+when submitting a request. If the response size cannot be determined statically, it is preceded by 8 bytes that 
+contain its size. While a known response size can be used to limit the number of requests in a request slot just 
+like the size of requests, unknown size responses can lead to scenarios where not all of the responses for a 
+request slot fit in a single response slot. In such cases the trustee will send anything that doesn't fit in the 
 response slot to the client using TCP in a similar fashion as discussed in \ref{s:tcp_fallback}. In addition, if 
 the response size is zero and statically known, then nothing is sent in the slot for that particular response. 
 \ref{fig:req_slot} shows the format for both the request and response slots.\\
 
-In addition to the reqest/response, the slots also contain some metadata. They both contain a ready bit and
-an offset, with the request slot containing a few more things. The ready bit is ther to let the other side 
+In addition to the request/response, the slots also contain some metadata. They both contain a ready bit and
+an offset, with the request slot containing a few more things. The ready bit is there to let the other side 
 know of a new request or response. It has to be at the end to ensure that when a client or trustee sees the
 ready bit the rest of the slot has already been written. This is necessary because RDMA writes data sequentially
-and having the start of a slot been written to does not mean all of it is available to read. The offset has to
-do with another optimization for the size of RDMA writes. Depending on the size of requests and reponses, a 
+and having the start of a slot been written to, does not mean all of it is available to read. The offset has to
+do with another optimization for the size of RDMA writes. Depending on the size of requests and responses, a 
 slot can be sent to the remote machine before it is 100\% full, in which case writing the full slot to remote 
-machine's memory wastes bandwidth and lowers performance. Since the reasy bit needs to be at the end of the 
+machine's memory wastes bandwidth and lowers performance. Since the ready bit needs to be at the end of the 
 slot and in a known place, requests and responses are aligned to the end of the slot leaving the start of it
 empty. The offset informs the remote side where the actual data starts in the slot. The request slot also 
 contains the request count and the vtable cache as discussed earlier. The last thing in request slot metadata
-is a bit that indicates if there is a single large request in the slot or muliptle small ones. As discussed 
+is a bit that indicates if there is a single large request in the slot or multiple small ones. As discussed 
 in \ref{s:tcp_fallback}, if the request will not fit in the slot it is sent using TCP and only the relevant 
 pointers go in the slot. The decision to only send a single request if it is large is to simplify the design
 since large requests are not the focus of this work.
 
-\subsection{Trsutee and Client memory layout}
+\subsection{Trustee and Client memory layout}
 
 \input{figures/req_mem_layout}
 % \input{figures/resp_mem_layout}
@@ -192,19 +192,19 @@ since large requests are not the focus of this work.
 
 The clients and trustees on a single machine share memory, so a client can prepare the whole request slot in a 
 pre-designated place and then flip the ready bit at the end to signal the trustee that it is ready. The trustee 
-continuously polls this piece of memory too determin the arrival of new requests. This leads to $num\_threads^2 
+continuously polls this piece of memory to determine the arrival of new requests. This leads to $num\_threads^2 
 \times sizeof(reques\_slot)$ bytes of memory being reserved for request slots. Same for response slots as well.
 We can think of that as a \textit{square} in memory with $num\_threads$ side length. When we move on to a 
-distributed setting, we can extend this \textit{squre} to have $num\_threads \times num\_machines$ side length.
+distributed setting, we can extend this \textit{square} to have $num\_threads \times num\_machines$ side length.
 The whole of the bigger \textit{square} does not need to be allocated on each machine as that would waste memory.
-Instead parts of it are allocated on each machine. \ref{fig:req_mem_layout} shows an example layout for a system 
+Instead, parts of it are allocated on each machine. \ref{fig:req_mem_layout} shows an example layout for a system 
 with three machines that have three system threads each for a total of nine threads. In the figure, each cell 
 represents a request slot going from a source thread to a destination thread as labeled and horizontal
-rows represent memory that is physically contigous while different colors divide the \textit{square} based on which 
+rows represent memory that is physically contiguous while different colors divide the \textit{square} based on which 
 machine the memory is allocated on. Here, unlike in a single machine setting, there are two \textit{squares}. 
 Clients on one machine need to prepare the requests in local memory before writing the request slot to the trustee's 
-memory on another machine. Theoratically, RDMA allows the clients to write the requests in the trustee's memory as
-they come and flip th ready bit once the slot is full similar to single machine channel, however this would result 
+memory on another machine. Theoretically, RDMA allows the clients to write the requests in the trustee's memory as
+they come and flip the ready bit once the slot is full similar to single machine channel, however this would result 
 in many small RDMA write operations, reducing the effectiveness of batching and sinking the performance. 
 
 From the perspective of the whole rack as a single system, each row of request slots in the client memory 
@@ -212,7 +212,7 @@ From the perspective of the whole rack as a single system, each row of request s
 thread 1 (thread 1, machine 1) to thread 7 (thread 1 machine 3) is prepared in memory represented by the cell in
 row one and column seven in client memory \textit{square} and then written to the cell in row seven and column one
 in trustee memory \textit{square} and so on. \ref{fig:req_mem_layout} also shows a few additional examples. There 
-is a similar system in place for responsee slots as well.
+is a similar system in place for response slots as well.
 
 \subsection{Scaling impact of increasing number of Queue Pairs}
 
@@ -220,17 +220,17 @@ is a similar system in place for responsee slots as well.
 
 As discussed in \ref{s:rdmaapi}, rdma communications happen via a queue pair (QP). Theoretically each machine
 pair only needs to have a single QP resulting in $num\_machines^2$ QPs. However, this means sharing a QP among 
-many threads. The QPs use a spin lock internally to make sure QPs can be shared safely but that results in threads
+many threads. The QPs use a spin lock internally to make sure QPs can be shared safely, but that results in threads
 having to wait for each other before they can send requests to a trustee. A better but naive design might be
 to have a QP for every pair of system threads in the whole rack resulting in QPs in the order of 
-$(num\_machines \times num\_threads\_per\_machine)^2$. This also resluts in lost performance due to NIC cache 
+$(num\_machines \times num\_threads\_per\_machine)^2$. This also results in lost performance due to NIC cache 
 limitation. The NIC caches any recently used QPs, along with page mappings for any recently used pinned pages
-in its SRAM. Increasing the number of QPs resluts in NIC running out of SRAM, which in turn results in cache 
+in its SRAM. Increasing the number of QPs results in NIC running out of SRAM, which in turn results in cache 
 misses. We use a middle of the road system where instead of each thread making a separate QP for every other 
 thread, it makes a QP for each machine in the rack. This reduces the total number of QPs in the system to 
 $num\_machines^2 \times num\_threads\_per\_machine$. \ref{fig:qp_scaling_6m} shows an experiment that demonstrates 
 the performance gained by reducing the number of QPs in the system. This experiment was performed with 6 machines, 
-all connectedto switch with 100Gb/s ethernet links. Each thread writes 256 bytes in a randomly chosen remote 
+all connected to switch with 100Gb/s ethernet links. Each thread writes 256 bytes in a randomly chosen remote 
 thread's memory twenty million times. As the number of threads increases, thereby increasing the number of QPs, 
-the system with reduced number of QPs maintains peak throughput where as the system with quadratic number of QPs 
+the system with reduced number of QPs maintains peak throughput whereas the system with quadratic number of QPs 
 starts to fall off, resulting in a 25\% decrease at the extreme end.
