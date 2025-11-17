@@ -1,0 +1,32 @@
+\section{Distributed Systems}
+
+Just as multithreaded applications exploit multiple cores within a single machine, distributed systems exploit 
+resources across multiple machines. To support this model, a variety of distributed systems frameworks have 
+emerged, each providing abstractions and tooling to handle communication, coordination, and fault tolerance. Below 
+we discuss a few of these briefly.
+
+Remote Procedure Call (RPC) is a widely used model for communication in datacenters
+\cite{Birrell:1984:IRP:2080.357392,Srinivasan:1995:RRP:RFC1831,Bershad:1989:LRP:74850.74861,6702617,Adamson2016,Talpey2010,4228186,brabson2011method,shyam2015managing,merrick2015xml,Soumagne2013MercuryER}.
+RPCs provide the useful abstraction of running a function on a remote machine, while hiding the underlying network 
+communication. For most approaches to RPC, the function needs to be registered at the start and calls to it can 
+be either synchronous or asynchronous. A synchronous call will wait for a response while an asynchronous call can 
+provide a callback function to be executed once the response is ready and continue execution. This is similar to 
+delegation, rather than moving data to where it is needed, the code that uses the data is sent to its location. 
+This process typically involves serializing and deserializing of data and transport protocols that ensure reliable 
+message delivery. By decoupling distributed computation from explicit message handling, RPC simplifies the 
+development of networked applications, supports modular system design, and serves as a foundational mechanism in 
+many modern distributed architectures, including microservices and cloud-based systems.
+
+Message Passing is another dominant communication framework
+\cite{doi:10.1177/1094342005054257,Doolan:2008:MMP:1497185.1497251,10.1007/978-3-540-30218-6_22,1303192,6154915}. 
+Unlike RPC, Message Passing has explicit communication and involves sending and receiving messages. Depending on 
+the implementation, there can be guarantees regarding the reliability of message transport or the order of 
+messages, or it can be a send-and-forget system where the sender might not even know if the message reached its 
+destination. MPI \cite{10.5555/898758} a widely used standard that provides a range of communication primitives, 
+from one-to-one messages to many-to-many. It also provides both blocking and non blocking versions of send/receive.
+
+There is also ongoing research to minimize resource usage of communication as much as possible. Remote Direct 
+Memory Access (RDMA) is one such attempt \cite{946704,pfister2001introduction,5289144,87568}. RDMA allows the user 
+to read a remote machine's memory by utilizing specialized Network Interface Cards (NIC) while bypassing the 
+remote machine's operating system. Additionally, there is also some work on using a custom networking stack for 
+distributed systems as compared to a hardware accelerated RDMA system \cite{225980,10.1145/3341301.3359657,SocketsvsRDMA}.
