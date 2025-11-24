@@ -5,7 +5,7 @@ In this section we use microbenchmarks to evaluate \name{} on throughput and lat
 benchmarks to evaluate how \name{} performs in the real world. These experiments were performed on the r6615 
 cluster from Cloudlab Clemson using 12 machines. Each machine here uses AMD EPYC 9354P CPU and has 32 threads 
 over four NUMA nodes at 3.3 GHz. We do not use hyperthreading for this experiment. Each machine has 100 Gbps 
-Mellanox ConnectX-6 interfaces and connected to a Dell Z9432 switch. These machines are equipped with 188 GB RAM 
+Mellanox ConnectX-6 interfaces and connected to a Dell Z9432 switch. These machines are equipped with 188 GB RAM 
 each and are running Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-160-generic x86\_64).
 
 
@@ -34,7 +34,7 @@ number of machines increases.
 performs better than both \name{} and eRPC due to smaller request headers, however as the request size 
 increases, this advantage becomes negligible and the other systems overtake it. All three systems experience a 
 drop in the number of requests served as the request size increases, however \name{} experiences a particularly 
-steep drop as it cross th 1KB threshold. This is explained by the TCP fallback for large requests as discussed 
+steep drop as it cross the 1KB threshold. This is explained by the TCP fallback for large requests as discussed 
 in section \ref{s:tcp_fallback}. 
 
 \subsection{Microbenchmark: Latency}
@@ -55,11 +55,45 @@ significant at lower load. eRPC then quickly reaches its peak throughput and any
 the latency whereas \name{} is able to achieve much higher throughput while remaining below 100 \textmu s tail 
 latency.
 
+\subsection{Application: Key-Value Store}
+\input{figures/kv_r6615_ycsbb_u}
+\input{figures/kv_r6615_ycsbc_u}
+\input{figures/kv_r6615_ycsbb_z}
+\input{figures/kv_r6615_ycsbc_z}
+
+To understand the real world performance of \name{}, we implemented a distributed key-value store named Hydra. 
+Hydra divides the key space among all of the servers equally and each server in turn divides the relevant key 
+space among a set of dedicated trustees. A client can connect with any server that is part of the store and submit
+queries. Hydra uses \name{} to respond the queries using delegation. We compare Hydra with Redis, a common 
+production ready key-value store as well as a few single machine stores running independently on the servers. In 
+case of latter, the client needs to divide the key space (also called sharding) and send queries to the appropriate 
+server. The single machine key-value stores include a delegation based hashmap called trust here, Dashmap from Rust 
+crate ``dashmap" version ``6.1.0" and a hashmap with 4096 shards protected by a readers-writers lock. In case of 
+Redis, we disable replication and disk backup and provide two I/O threads per instance. The key space 
+these experiments consists of one million keys and queries consist of 8 byte keys and 16 byte values. Each reported 
+data point here is an average of three runs after an initial warm up stage that populates all the keys. For these 
+experiments up to 8 machines act as servers and up to 4 machines act as clients with each client machine running 
+256 threads over 64 cores. For Hydra, each client thread connects to one server using TCP. However, for trust, 
+dashmap and rwlock, each thread needs to connect with each server.
+
+\ref{fig:kv_ycsbb_u} and \ref{fig:kv_ycsbb_z} show the results Hydra scales much better than running independent 
+servers and leaving the sharding to the clients. This is explained by the fact that for Hydra, a client can send a 
+whole batch of requests to any of the servers regardless of where the keys may reside, but for single machine 
+stores, the client needs to divide the requests based on the keys and send them to appropriate servers. This 
+reduces the batch size and increases the number of packets being sent over the network. That in turn results in the 
+servers spending more time processing the TCP communication. This is evidenced by perf showing that a trust server, 
+which is also delegation based, spends 30\% more time in kernel mode than a Hydra server. Dashmap and rwlock scale 
+particularly poorly in a zipfian workload due to high contention resulting from most of the queries being about a 
+small number of keys. Redis is a production ready key-value store that typically offers 400,000 to 600,000 
+operations per second depending on workload \cite{redis-bench}. This is significantly less than per thread 
+performance of all of the stores in this experiment. We also include a line showing how it would scale were it to 
+have the same per thread performance as Hydra.
+
 \subsection{Application: Single Source Shortest Path (SSSP)}
 \input{figures/sssp_threads_n27_r6615}
 \input{figures/sssp_size_r6615}
 
-To understand the real world performance of \name{}, we implement a distributed version of Dijkstra's algorithm 
+For this benchmark, we implement a distributed version of Dijkstra's algorithm 
 for shortest path to each node in a weighted undirected graph given a source node. We compare this application to 
 the graph500 reference benchmark \cite{g500} for supercomputers. Even though the graph500 benchmark uses the 
 delta-stepping algorithm, we observed that both systems traverse roughly equal number of edges, making any 
@@ -74,13 +108,10 @@ with it. Similarly, \ref{fig:sssp_size} shows \name{} achieving comparable perfo
 of graph sizes with 384 threads across 12 machines.
 
 
+
+
+
 % \input{figures/erpc_vs_gsm_loaded_latency_t56}
 % \input{figures/sssp_threads_n26_r6615}
-\input{figures/kv_r6615_ycsbc}
-\input{figures/kv_r6615_ycsbd}
 % \input{figures/qp_scaling_5m_r6615}
 % \input{figures/qp_scaling_6m_r6615}
-
-% As \ref{fig:erpc_batch} shows, they had a great logo too.  And they wrote amazing
-% albums, like \gls{rtr} and \gls{eofc}, and a couple more.  They even did
-% three (!) jingles for Steel Reserve\footnote{The gross malt liquor.}

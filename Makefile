@@ -2,9 +2,9 @@ extensions_to_clean := out aux log bbl blg fls fdb_latexmk glg gls lof glo glsde
 
 all: plots thesis
 
-PLOTS = echo_loaded_latency echo_tput_r6615 \
-	sssp_threads_n26_r6615 sssp_threads_n27_r6615 sssp_size_r6615 kv_r6615_ycsbc kv_r6615_ycsbd \
-	qp_scaling_6m_r6615 qp_scaling_5m_r6615 echo_tput_reqsize_r6615
+PLOTS = echo_loaded_latency echo_tput_r6615  kv_r6615_ycsbc_u kv_r6615_ycsbc_z\
+	sssp_threads_n26_r6615 sssp_threads_n27_r6615 sssp_size_r6615 kv_r6615_ycsbb_u kv_r6615_ycsbb_z \
+	qp_scaling_6m_r6615 echo_tput_reqsize_r6615
 	
 SCRIPTS_DIR = figures/scripts
 

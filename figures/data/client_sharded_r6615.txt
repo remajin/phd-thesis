@@ -1,6 +1,0 @@
-num_server_machines: 1 num_trustees: 6 num_client_threads: 224 mops: 30
-num_server_machines: 2 num_trustees: 6 num_client_threads: 224 mops: 32
-num_server_machines: 3 num_trustees: 6 num_client_threads: 224 mops: 48
-num_server_machines: 4 num_trustees: 6 num_client_threads: 448 mops: 50
-num_server_machines: 5 num_trustees: 6 num_client_threads: 448 mops: 66
-num_server_machines: 6 num_trustees: 6 num_client_threads: 768 mops: 60

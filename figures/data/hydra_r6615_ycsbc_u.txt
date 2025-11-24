@@ -1,8 +1,8 @@
-num_mchines: 1 num_trustees: 6 num_threads: 32 mops: 48.756
-num_mchines: 2 num_trustees: 6 num_threads: 32 mops: 103.415
-num_mchines: 3 num_trustees: 6 num_threads: 32 mops: 159.876
-num_mchines: 4 num_trustees: 6 num_threads: 32 mops: 203.868
-num_mchines: 5 num_trustees: 6 num_threads: 32 mops: 268.755
-num_mchines: 6 num_trustees: 6 num_threads: 32 mops: 301.175
-num_mchines: 7 num_trustees: 6 num_threads: 32 mops: 357.344
-num_mchines: 8 num_trustees: 6 num_threads: 32 mops: 385.041
+num_mchines: 1 num_trustees: 8 num_threads: 32 mops: 58.751
+num_mchines: 2 num_trustees: 8 num_threads: 32 mops: 121.929
+num_mchines: 3 num_trustees: 8 num_threads: 32 mops: 198.744
+num_mchines: 4 num_trustees: 8 num_threads: 32 mops: 267.429
+num_mchines: 5 num_trustees: 8 num_threads: 32 mops: 342.39
+num_mchines: 6 num_trustees: 8 num_threads: 32 mops: 410.635
+num_mchines: 7 num_trustees: 8 num_threads: 32 mops: 484.573
+num_mchines: 8 num_trustees: 8 num_threads: 32 mops: 542.955

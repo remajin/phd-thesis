@@ -1,0 +1,8 @@
+num_mchines: 1 num_trustees: 8 num_threads: 32 mops: 52.094
+num_mchines: 2 num_trustees: 8 num_threads: 32 mops: 93.850
+num_mchines: 3 num_trustees: 8 num_threads: 32 mops: 144.341
+num_mchines: 4 num_trustees: 8 num_threads: 32 mops: 173.299
+num_mchines: 5 num_trustees: 8 num_threads: 32 mops: 212.634
+num_mchines: 6 num_trustees: 8 num_threads: 32 mops: 248.735
+num_mchines: 7 num_trustees: 8 num_threads: 32 mops: 284.573
+num_mchines: 8 num_trustees: 8 num_threads: 32 mops: 319.958
