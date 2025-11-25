@@ -56,10 +56,10 @@ the latency whereas \name{} is able to achieve much higher throughput while rema
 latency.
 
 \subsection{Application: Key-Value Store}
-\input{figures/kv_r6615_ycsbb_u}
 \input{figures/kv_r6615_ycsbc_u}
-\input{figures/kv_r6615_ycsbb_z}
+\input{figures/kv_r6615_ycsbb_u}
 \input{figures/kv_r6615_ycsbc_z}
+\input{figures/kv_r6615_ycsbb_z}
 
 To understand the real world performance of \name{}, we implemented a distributed key-value store named Hydra. 
 Hydra divides the key space among all of the servers equally and each server in turn divides the relevant key 
@@ -76,18 +76,26 @@ experiments up to 8 machines act as servers and up to 4 machines act as clients 
 256 threads over 64 cores. For Hydra, each client thread connects to one server using TCP. However, for trust, 
 dashmap and rwlock, each thread needs to connect with each server.
 
-\ref{fig:kv_ycsbb_u} and \ref{fig:kv_ycsbb_z} show the results Hydra scales much better than running independent 
-servers and leaving the sharding to the clients. This is explained by the fact that for Hydra, a client can send a 
-whole batch of requests to any of the servers regardless of where the keys may reside, but for single machine 
-stores, the client needs to divide the requests based on the keys and send them to appropriate servers. This 
-reduces the batch size and increases the number of packets being sent over the network. That in turn results in the 
-servers spending more time processing the TCP communication. This is evidenced by perf showing that a trust server, 
-which is also delegation based, spends 30\% more time in kernel mode than a Hydra server. Dashmap and rwlock scale 
-particularly poorly in a zipfian workload due to high contention resulting from most of the queries being about a 
-small number of keys. Redis is a production ready key-value store that typically offers 400,000 to 600,000 
-operations per second depending on workload \cite{redis-bench}. This is significantly less than per thread 
-performance of all of the stores in this experiment. We also include a line showing how it would scale were it to 
-have the same per thread performance as Hydra.
+\ref{fig:kv_ycsbc_u} and \ref{fig:kv_ycsbb_u} show the number of operations per second for a read only workload and 
+5\% write, 95\% read workload respectively with a uniform distribution of keys. Hydra scales much better than 
+running independent servers and leaving the sharding to the clients. This is explained by the fact that for Hydra, 
+a client can send a whole batch of requests to any of the servers regardless of where the keys may reside, but for 
+single machine stores, the client needs to divide the requests based on the keys and send them to appropriate 
+servers. This reduces the batch size and increases the number of packets being sent over the network. That in turn 
+results in the servers spending more time processing the TCP communication. This is evidenced by perf showing that 
+a trust server, which is also delegation based, spends 30\% more time in kernel mode than a Hydra server. Dashmap 
+and rwlock do better than trust due to low contention but suffer from higher system call overhead much the same. 
+Redis is a production ready key-value store that typically offers 400,000 to 600,000 operations per second 
+depending on workload \cite{redis-bench}. This is significantly less than per thread performance of all of the 
+stores in this experiment. We also include a line showing how it would scale were it to have the same per thread 
+performance as Hydra.
+
+\ref{fig:kv_ycsbc_z} and \ref{fig:kv_ycsbb_z} show the number of operations per second for a read only workload and 
+5\% write, 95\% read workload respectively with a zipfian distribution of keys. We see similar trends for read only 
+workload but dashmap and rwlock scale particularly poorly with the mixed workload due to high contention resulting 
+from most of the queries being about a small number of keys. The contention stems from rwlock and dashmap, which 
+also uses an rwlock internally, not allowing any readers while the value for a particular key is being updated. 
+This is not an issue with either of the delegation based systems as reads and writes are treated the same way.
 
 \subsection{Application: Single Source Shortest Path (SSSP)}
 \input{figures/sssp_threads_n27_r6615}
@@ -102,10 +110,10 @@ of kronecker generator with an edge factor of 32. For each experiment we ran sss
 nodes and report the average time taken per run.
 
 \ref{fig:sssp_threads_n27} shows the results of SSSP on a graph with $2^{27}$ nodes and average degree of 32, 
-as the size of the cluster increases. Each successive data point increments the thread count by 32. Despite 
-graph500 being a highly specialized application designed to benchmark supercomputers, \name{} is able to keep up
-with it. Similarly, \ref{fig:sssp_size} shows \name{} achieving comparable performance to graph500 across a range 
-of graph sizes with 384 threads across 12 machines.
+as the size of the cluster increases. Each successive data point increments the thread count by 32. Even though
+graph500 is a highly specialized application designed to benchmark supercomputers, \name{} is able to keep up
+with it despite being a general framework. Similarly, \ref{fig:sssp_size} shows \name{} achieving comparable 
+performance to graph500 across a range of graph sizes with 384 threads across 12 machines.
 
 
 

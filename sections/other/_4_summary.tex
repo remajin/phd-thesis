@@ -1,3 +1,10 @@
 \summary
 
-One to two page summary of the entire work.  Like a long abstract.
+As workloads have grown more parallel and data-heavy, single-threaded performance has become inadequate. This gives 
+rise to the problem of managing safe access to shared data. Conventionally, this is achieved through locking or 
+compare and swap, both of which use atomic instructions internally. As these instructions cannot be reordered with 
+other instructions, they offer limited scaling, especially as the data becomes more contented. Delegation provides 
+an alternative that scales well and is not as prone to high contention. Delegation is a versatile mechanism and can 
+also be used to scale an application beyond a single machine. We design and implement two systems, \trust{} and 
+\name{}, to study how delegation compares against state-of-the-art systems in shared memory and distributed systems 
+respectively.
