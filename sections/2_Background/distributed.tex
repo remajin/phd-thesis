@@ -30,3 +30,16 @@ Memory Access (RDMA) is one such attempt \cite{946704,pfister2001introduction,52
 to read a remote machine's memory by utilizing specialized Network Interface Cards (NIC) while bypassing the 
 remote machine's operating system. Additionally, there is also some work on using a custom networking stack for 
 distributed systems as compared to a hardware accelerated RDMA system \cite{225980,10.1145/3341301.3359657,SocketsvsRDMA}.
+
+RDMA has also given rise to a renewed academic interest in distributed shared memory (DSM) \cite{264822,10.1145/3600006.3613135,10.1145/3721473.3722140,10.1109/SC41406.2024.00114,10.14778/3561261.3561263,298677}.
+The idea behind DSM is to create the illusion of a shared address space for networked applications. The application 
+can be programmed as if all of the data is located in local memory and the DSM system is responsible for ensuring 
+safety, consistency and synchronization. One challenge with DSM is the coherence overhead, which can dominate both 
+CPU cycles and network traffic, increasing latency \cite{298677}. \cite{10.14778/3561261.3561263} also highlights 
+the need to revisit cache and buffer management due to narrowing gap between local and remote memory.
+
+\name{} combines RPC and DSM to simplify the synchronization of remote memory while delivering high performance. 
+It extends the delegation mechanism from \trust{} to work with distributed memory enabling distributed applications 
+to be designed like shared memory applications with a few limitations. As only a single thread ever accesses any 
+piece of shared data, \name{} doesn't need to do any extra work to ensure safety and consistency of memory. Along 
+with simplifying the design, this also reduces data access overhead lowering the latency.
