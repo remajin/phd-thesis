@@ -30,10 +30,6 @@ Automatically tuning this trade-off is an area of ongoing research.
 That said, the current implementation performs delegation tasks in a fiber that is scheduled in FIFO order just as other fibers.
 After serving incoming requests, this fiber polls for incoming responses and issues any enqueued outgoing requests as applicable.
 
-\subsubsection{Local Trustee Shortcut}
-
-When a Trust has the current thread as its trustee, it is superfluous to use delegation to apply the closure. Instead, it is just as safe, and more efficient, to simply apply the closure directly, since we know that no other closures will run until the provided closure has run to completion. As a reminder, we know this because delegated closures may not suspend the current fiber.
-
 \subsection{Request and Response Slot Structure}
 \label{st:slots}
 

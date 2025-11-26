@@ -104,7 +104,7 @@ the types that may be safely moved and shared between threads, and this continue
 That said, safety does not guarantee performance. A common performance pitfall when writing delegation-based software is 
 memory stalls on the trustee, which affects trustees disproportionately due to the polling nature of the delegation channel (see \S\ref{s:delegating}). Frequent cache misses and use of atomic instructions in delegated closures can substantially degrade trustee throughput vs. running closures with good memory locality. 
 
-Generally speaking, cache line contention and use of atomic instructions are a natural result of sharing memory between threads. By prohibiting the capture of references and pointers, \trust{} makes accidental shared memory patterns of programming much less likely in delegated code, and encourage pass-by-value practices. 
+Generally speaking, cache line contention and use of atomic instructions are a natural result of sharing memory between threads. By prohibiting the capture of references and pointers, \trust{} makes accidental shared memory patterns of programming much less likely in delegated code, and encourage cache friendly pass-by-value practices. 
 
 \subsubsection{Variable-size and other heap-allocated values}
 

@@ -38,7 +38,7 @@ safety, consistency and synchronization. One challenge with DSM is the coherence
 CPU cycles and network traffic, increasing latency \cite{298677}. \cite{10.14778/3561261.3561263} also highlights 
 the need to revisit cache and buffer management due to narrowing gap between local and remote memory.
 
-\name{} combines RPC and DSM to simplify the synchronization of remote memory while delivering high performance. 
+\name{} combines RPC and some aspects of DSM to simplify the synchronization of remote memory while delivering high performance. 
 It extends the delegation mechanism from \trust{} to work with distributed memory enabling distributed applications 
 to be designed like shared memory applications with a few limitations. As only a single thread ever accesses any 
 piece of shared data, \name{} doesn't need to do any extra work to ensure safety and consistency of memory. Along 
