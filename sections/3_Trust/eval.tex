@@ -36,7 +36,7 @@ We further report results with both letting all cores serve as both clients and 
 \subsubsection{Uniform Access Pattern}
 
 
-Figure \ref{f:fna_variables} illustrates the performance of several solutions on the uniform distribution version of this benchmark. 
+\ref{f:fna_variables} illustrates the performance of several solutions on the uniform distribution version of this benchmark. 
 For a very small number of objects, no data points are reported for some of the lock types - this is because the experiment took far too long to run due to severe congestion collapse. 
 
 {\tt Trust<T>} substantially outperforms locking under congested conditions.
@@ -72,7 +72,7 @@ Moreover, we struggled to apply TCLocks to memcached (which consistently crashed
 Zipf's law \cite{zipf1949} elegantly captures the distribution of words in written language. In brief, it says that the probability of word occurrence $p_w$ is distributed according to the rank $r_w$ of the word, thus: $p_w \propto {r_w}^{-\alpha}$, where $\alpha \sim 1$.
 Similar relationships, often called ``power laws'', are common in areas beyond written language \cite{zipf1949,boltzmann,Ojovan_2006,DODDS20019,Venture}, sometimes with a greater value for $\alpha$. The higher the $\alpha$, the more pronounced is the effect of popular keys, resulting in congestion. 
 
-Figure \ref{f:fna_variables_zipf} shows the results of our fetch-and-add experiment, but with objects selected according to a zipfian distribution ($\alpha=1$) instead of the uniform distribution above, representing a common skewed access distribution. 
+\ref{f:fna_variables_zipf} shows the results of our fetch-and-add experiment, but with objects selected according to a zipfian distribution ($\alpha=1$) instead of the uniform distribution above, representing a common skewed access distribution. 
 
 With this skewed access pattern, \trust{} overwhelmingly outperforms locking across the range of table sizes. 
 This is explained by the relatively low throughput of a single lock. 

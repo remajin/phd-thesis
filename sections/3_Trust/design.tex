@@ -37,12 +37,12 @@ After serving incoming requests, this fiber polls for incoming responses and iss
   \centering
   \includegraphics[width=5in]{figures/request_slot}
   \caption{The fixed-size \trust{} request slot consists of a {\tt ready} bit, a request counter, and a variable number of variable-sized requests. 
-  The response slot contains a matching {\tt bit}, as well as one (fixed, variable, or zero-sized) response per request in the matching request slot. 
+  The response slot contains a matching {\tt ready} bit, as well as one (fixed, variable, or zero-sized) response per request in the matching request slot. 
   There is one dedicated pair of request/response slots for each trustee/client pair.
   }
   \label{f:requestslot}
 \end{figure*}
-Figure \ref{f:requestslot} illustrates the internal structure of the basic request and response slot design. 
+\ref{f:requestslot} illustrates the internal structure of the basic request and response slot design. 
 A header consisting of a {\tt ready} bit and a request count, is followed by a variable number of variable-sized requests.
 The value of the {\tt ready} bit is used to indicate whether a new request or set of requests has been written to the slot: 
 if the bit differs from the {\tt ready} bit in the corresponding response slot, then a new set of requests is ready to be processed.

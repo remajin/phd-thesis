@@ -22,13 +22,6 @@
 	publisher = {{USENIX} Association},
 }
 
-@techreport{trustreport,
-	title = {Trust<T>: A typesafe programming abstraction for Delegation in Rust},
-	author = {Ben Baenen and Jakob Eriksson},
-	institution = {University of Illinois at Chicago, Department of Computer Science},
-	year = {2021}
-}
-
 @INPROCEEDINGS{946704, 
 	author={F. {Petrini} and and A. {Hoisie} and S. {Coll} and E. {Frachtenberg}}, 
 	booktitle={HOT 9 Interconnects. Symposium on High Performance Interconnects}, 
@@ -355,7 +348,7 @@
 @url{pollcq,
 	author={Dotan Barak},
 	title={RDMAmojo},
-	url={https://www.rdmamojo.com/2013/02/15/ibv_poll_cq/},
+	howpublished = {\url{https://www.rdmamojo.com/2013/02/15/ibv_poll_cq/}},
 }
 
 @inproceedings {litl,
@@ -416,7 +409,7 @@
 @misc{Venture,
 	title = {{Power Laws in Venture}},
 	author = {{Jerry Neumann}},
-	url = {https://reactionwheel.net/2015/06/power-laws-in-venture.html},
+	howpublished = {\url{https://reactionwheel.net/2015/06/power-laws-in-venture.html}},
 	date = {June 25, 2015}
 }
 
@@ -424,16 +417,16 @@
 	title = {{dashmap}},
 	author = {{xacrimon}},
 	note = {Version 5.5.3},
-	url = {https://crates.io/crates/dashmap},
+	howpublished = {\url{https://crates.io/crates/dashmap}},
 }
 
-@misc{ahmad2024trust,
+@article{ahmad2024trust,
     title = {Delegation with {Trust{\textless}T{\textgreater}}: A Scalable, Type- and Memory-Safe Alternative to Locks},
     author = {Noaman Ahmad and Ben Baenen and Chen Chen and Jakob Eriksson},
     year = 2024,
     url = {https://arxiv.org/abs/2408.11173},
     eprint = {2408.11173},
-    archiveprefix = {arXiv},
+    journal = {arXiv},
     primaryclass = {cs.PF},
 }
 
@@ -450,14 +443,14 @@
 	month = feb
 }
 
-@url {g500,
+@misc{g500,
 	title = {Graph500 reference Benchmark},
-	url = {graph500.org},
+	howpublished = {\url{https://graph500.org}},
 }
 
-@url {erpc_issue,
+@misc{erpc_issue,
 	title = {eRPC throughput with 100 Gbps connection},
-	url = {https://github.com/erpc-io/eRPC/issues/32#issuecomment-510968083},
+	howpublished = {\url{https://github.com/erpc-io/eRPC/issues/32#issuecomment-510968083}},
 }
 
 @phdthesis{chen_thesis,
@@ -578,7 +571,8 @@
 	title = {How many requests per second can I get out of Redis?},
 	author = {kostas},
 	year = {2013},
-	month = {10},
+	month = {8},
+	howpublished = {\url{https://skipperkongen.dk/2013/08/27/how-many-requests-per-second-can-i-get-out-of-redis/?utm_source=chatgpt.com}},
 }
 
 @inproceedings {298677,
@@ -671,4 +665,9 @@
 	keywords = {distributed shared memory, fault tolerance, monitoring tools, anomaly detection, machine learning},
 	location = {World Trade Center, Rotterdam, Netherlands},
 	series = {PaPoC '25}
+}
+
+@misc{redis,
+	title = {Redis Cluster},
+	howpublished = {\url{https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/}},
 }

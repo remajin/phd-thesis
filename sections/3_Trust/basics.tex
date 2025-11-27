@@ -21,7 +21,7 @@ Below, we first introduce the basic \trust{} programming model, as well as the k
 A \trust{} is a thread-safe reference counting smart-pointer, similar to Rust's {\it Arc$<$T$>$}. 
 To create a \trust{}, we clone an existing \trust{} or $entrust$ a new object, or $property$ of type $T$, that is meant to be shared between threads. 
 Once entrusted, the property can only be accessed by {\it applying} closures to it, using a trust.
-Figure \ref{f:minimal} illustrates this through a minimal Rust example.
+\ref{f:minimal} illustrates this through a minimal Rust example.
 Line 1 entrusts an integer, initialized to 17, to the local trustee - the trustee fiber running on the current kernel thread. 
 Line 2 applies an anonymous closure to the counter, via the trust.
 The closure expected by {\tt apply} takes a mutable reference to the property as argument, allowing it unrestricted access to the property, in this case, our integer. 
@@ -68,7 +68,7 @@ Here, the {\tt clone()} call on {\tt ct} (line 2) clones the trust, but not the 
   When the thread exits, {\tt ct2} is dropped, decrementing the reference count, by means of a delegation request.
   When the last trust of a property is dropped, the property is dropped as well. 
 
-For readers unfamiliar with Rust, Figure \ref{f:minimal_mutex} illustrates the rough equivalent of Figure \ref{f:minimal_threads}, but using conventional Rust primitives instead of \trust{}. Note the similarity in terms of legibility and verbosity. 
+For readers unfamiliar with Rust, \ref{f:minimal_mutex} illustrates the rough equivalent of \ref{f:minimal_threads}, but using conventional Rust primitives instead of \trust{}. Note the similarity in terms of legibility and verbosity. 
 
 \subsection{Trustee - a thread in charge of entrusted properties}
 
