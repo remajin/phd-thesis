@@ -11,7 +11,7 @@ improvement for a key-value store in high-contention workloads, while remaining
 competitive even without contention.
 
 \name{} extends the concept of delegation to distributed computing. It allows an
-application written for a single machine to scale to a distributed cluster with minimal
+application written for a single machine to scale to a small cluster with minimal
 changes. Using Remote Direct Memory Access (RDMA) for high-performance
 communication, \name{} supports delegating Rust closures across machines and
 employs lightweight user-space threads (fibers) for concurrency. Our experiments show 3x

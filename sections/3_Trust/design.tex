@@ -10,7 +10,7 @@ The key operation supported by \trust{} is {\tt apply()}, which applies a Rust {
 One or more requests are written to the client's dedicated, fixed-sized {\it request slot} for the appropriate trustee.
 That is, only the client thread may write to the request slot. 
 For efficiency, if the captured environment of the closure fits in the request slot, we copy the environment directly to the slot, and update the fat pointer to reflect this change. 
-A flag in the request slot indicates that new requests are ready to be processed. See \S\ref{st:slots} for details on request and response slot structure.
+A flag in the request slot indicates that new requests are ready to be processed. See Section \ref{st:slots} for details on request and response slot structure.
 
 Responses are transmitted in a matching dedicated response slot. Leveraging the Rust type system, we restrict both requests and responses to types that can be serialized. 
 The subtle implication of this is that the return value may not pass any references or pointers to trustee-managed data.\footnote{That said, we cannot prevent  determined Rust programmers from using {\tt unsafe} code to circumvent this restriction.}
@@ -75,14 +75,14 @@ A two-part design accommodates a large number of requests (where needed), but im
 Trusts in \trust{} act as rust smart pointers that own the property, since they can be used to access and 
 modify the property behind them. This means that we need to make sure that when all of the trusts are dropped, 
 the property is also dropped and the associated memory is freed so as not to have memory leakage. To achieve 
-that trusts need to be reference counted, but a naive integer count will not suffice due to a combination of 
+that trusts need to be reference counted, but a na$\ddot{\i}$ve integer count will not suffice due to a combination of 
 the following two issues.
 
 \begin{itemize}
 	\item \trust{} does not support a blocking delegation operation when in the middle of another delegation 
 	request. For example calling \textit{apply} on a trust from within a closure that itself is used for 
-	delegation will cause the system to hang and never finish.
-	\item If the integer used for counting references, let's call it refcount, is incremented and decremented 
+	delegation would cause the system to hang and never finish.
+	\item If the integer used for counting references, \textit{refcount} below, is incremented and decremented 
 	asynchronously, i.e. with a nonblocking delegation call, it could lead to use after free bugs. Let's 
 	consider the following scenario: Thread A clones a trust with only one reference and sends an async request 
 	to increment its refcount. The cloned trust is then sent to Thread B that drops it, sending another async 

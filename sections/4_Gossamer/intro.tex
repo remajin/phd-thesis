@@ -1,6 +1,6 @@
 \section{Introduction}
 
-Since we hit the upper limit to how fast a single core can perform, programmers have diverted their attention to 
+After single-threaded performance plateaued a decade or more ago, programmers have diverted their attention to 
 making multi-threaded applications. This gives rise to the problem of synchronizing many threads as they access 
 the same data for correctness and making it efficient to not lose too much performance when compared to single 
 threaded applications. Today locks dominate this paradigm to the extent that there are hardware mechanisms in 
@@ -9,7 +9,7 @@ increment instructions. However, a delegation based programming model can offer 
 based one \cite{ffwd,ahmad2024trust,rcl}.
 
 This chapter utilizes the approach presented in \trust{} \cite{ahmad2024trust}, which in turn extends the work 
-presented in \textit{ffwd} \cite{ffwd}, to build a rack-wide programming framework. \textit{ffwd} and \trust{} are 
+presented in \textit{FFWD} \cite{ffwd}, to build a rack-wide programming framework. \textit{FFWD} and \trust{} are 
 based on delegation where a few threads (servers) act on behalf of many threads (clients). Its aim is to provide 
 single threaded data structure performance in a multi-threaded setting. \name{} takes it one step further and aims 
 to do the same in multi-machine setting. \name{} provides a very similar API to \trust{} enabling programmers to
@@ -19,7 +19,7 @@ distribution of work is handled behind the scenes, but programmers have the opti
 threads should run and where data should be held in the rack if they so choose.
 
 One inherent problem that restricts performance in distributed settings is the higher latency caused by network 
-traversal. \name{} overcomes that by using RDMA. RDMA provides sub-micro second one way latency that is comparable 
+traversal. \name{} partialy overcomes that by using RDMA. RDMA provides sub-micro second one way latency that is comparable 
 to that of permanent storage on single machine. While RDMA solves the problem with high latency, it does not scale 
 well with increasing number of connections per machine. To solve this \name{} establishes only one connection per 
 hardware thread for each remote machine in the rack and uses lightweight user space threads called fibers to 

@@ -35,7 +35,7 @@ performs better than both \name{} and eRPC due to smaller request headers, howev
 increases, this advantage becomes negligible and the other systems overtake it. All three systems experience a 
 drop in the number of requests served as the request size increases, however \name{} experiences a particularly 
 steep drop as it cross the 1KB threshold. This is explained by the TCP fallback for large requests as discussed 
-in section \ref{s:tcp_fallback}. 
+in Section \ref{s:tcp_fallback}. 
 
 \subsection{Microbenchmark: Latency}
 \input{figures/erpc_vs_gsm_loaded_latency}
@@ -62,14 +62,14 @@ latency.
 \input{figures/kv_r6615_ycsbb_z}
 
 To understand the real world performance of \name{}, we implemented a distributed key-value store named Hydra. 
-Hydra divides the key space among all of the servers equally and each server in turn divides the relevant key 
+Hydra divides the key space among all of the server machines equally and each server in turn divides the relevant key 
 space among a set of dedicated trustees. A client can connect with any server that is part of the store and submit
 queries. Hydra uses \name{} to respond the queries using delegation. We compare Hydra with Redis Cluster \cite {redis}, a common 
-production ready key-value store as well as a few single machine stores running independently on the servers. In 
-case of latter, the client needs to divide the key space (also called sharding) and send queries to the appropriate 
-server. The single machine key-value stores include a delegation based hashmap called trust here, Dashmap from Rust 
-crate ``dashmap" version ``6.1.0" and a hashmap with 4096 shards protected by a readers-writers lock. In case of 
-Redis, we disable replication and disk backup and provide two I/O threads per instance. The key space 
+production ready key-value store. We also compare against a few single machine stores running independently on the servers, in 
+which case, the client needs to divide the key space (also called sharding) and send queries to the appropriate 
+server. These experiments are denoted ``client sharded" in the figures. The single machine key-value stores include a delegation based hashmap called trust here, Dashmap from Rust 
+crate ``dashmap" version ``6.1.0" \cite{dashmap} and a hashmap with 4096 shards protected by a readers-writers lock referred as 
+rwlock below. In case of Redis, we disable replication and disk backup and provide two I/O threads per instance. The key space 
 these experiments consists of one million keys and queries consist of 8 byte keys and 16 byte values. Each reported 
 data point here is an average of three runs after an initial warm up stage that populates all the keys. For these 
 experiments up to 8 machines act as servers and up to 4 machines act as clients with each client machine running 

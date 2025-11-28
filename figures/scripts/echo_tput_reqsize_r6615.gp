@@ -10,9 +10,9 @@ set logscale xy 2
 #set style histogram clustered
 
 
-plot "~/thesis/figures/data/erpc_reqsize.txt" u 6:4 with linespoint dashtype 1 pointtype 2 title "erpc",\
-	"~/thesis/figures/data/echo_mpi_reqsize.txt" u 6:4 with linespoint dashtype 1 pointtype 4 title "mpi",\
-	"~/thesis/figures/data/echo_gsm_reqsize.txt" u 10:8 with linespoint dashtype 1 pointtype 6 title "gsm"
+plot "~/thesis/figures/data/erpc_reqsize.txt" u 6:4 with linespoint dashtype 1 pointtype 2 title "eRPC",\
+	"~/thesis/figures/data/echo_mpi_reqsize.txt" u 6:4 with linespoint dashtype 1 pointtype 4 title "MPI",\
+	"~/thesis/figures/data/echo_gsm_reqsize.txt" u 10:8 with linespoint dashtype 1 pointtype 6 title "Gossamer"
 	# "m3.txt" u 3:2 with linespoint title "m3",\
 	# "m4.txt" u 3:2 with linespoint title "m4",\
 	

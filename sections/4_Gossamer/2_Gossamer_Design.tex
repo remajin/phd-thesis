@@ -103,7 +103,7 @@ compile time will inform them what the issue is and direct them to use the seria
 
 \subsection{Request size and TCP fallback}
 \label{s:tcp_fallback}
-As described in \ref{s:del_flow}, the requests going from a client thread to the same trustee will be batched and 
+As described in Section \ref{s:del_flow}, the requests going from a client thread to the same trustee will be batched and 
 on trustee side the requests coming from a single thread will all be contiguous in memory. This is achieved by 
 the trustee having a pre-allocated space in memory (called requestSlot) for incoming requests from each client 
 thread. This limits how many requests a client thread can send in a single batch depending on how much data is 
@@ -123,7 +123,7 @@ requests are not the focus for \name{}, we decided to opt for the simpler design
 
 \input{figures/req_slot}
 
-As discussed in the previous section, the number of requests sent in batch depends on the size of the requests 
+As discussed in the previous section, the number of requests sent in a batch depends on the size of the requests 
 plus the size of any headers sent with the request. Section \ref{st:slots} describes the format of request and 
 response slots used for single machine delegation channel. Here we describe further optimizations made to request
 slots to minimize per request metadata to reduce wasted network bandwidth. The two-slot optimization of single 
@@ -218,7 +218,7 @@ is a similar system in place for response slots as well.
 
 \input{figures/qp_scaling_6m_r6615}
 
-As discussed in Section \ref{s:rdmaapi}, rdma communications happen via a queue pair (QP). Theoretically each machine
+As discussed in Section \ref{s:rdmaapi}, RDMA communications happen via a queue pair (QP). Theoretically each machine
 pair only needs to have a single QP resulting in $num\_machines^2$ QPs. However, this means sharing a QP among 
 many threads. The QPs use a spin lock internally to make sure QPs can be shared safely, but that results in threads
 having to wait for each other before they can send requests to a trustee. A better but naive design might be

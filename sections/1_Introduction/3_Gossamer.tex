@@ -11,7 +11,7 @@ This is very similar to how delegation works.
 \name{} extends \trust{} to build a rack-wide programming model. \name{} aims to provide a high performance and 
 easy to program in, framework that can take advantage of the increased resources available in a rack. Using the 
 API provided by \name{} programmers can code their applications like a normal delegation application with very 
-few changes and the applications have the illusion of running on the same machine. Most of the distribution of 
+few changes and the applications have the illusion of running on a single machine. Most of the distribution of 
 work is handled behind the scenes, but programmers have the option to customize where the worker threads should 
 run and where data should be held in the rack if they so choose. This can be achieved by mapping the server memory 
 to a client's address space using RDMA. This means that various things that are normally only possible in shared 

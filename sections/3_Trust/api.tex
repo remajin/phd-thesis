@@ -102,7 +102,7 @@ In principle, this is far stricter than what is necessary: the existing and perv
 the types that may be safely moved and shared between threads, and this continues to hold within \trust{}. 
 
 That said, safety does not guarantee performance. A common performance pitfall when writing delegation-based software is 
-memory stalls on the trustee, which affects trustees disproportionately due to the polling nature of the delegation channel (see \S\ref{s:delegating}). Frequent cache misses and use of atomic instructions in delegated closures can substantially degrade trustee throughput vs. running closures with good memory locality. 
+memory stalls on the trustee, which affects trustees disproportionately due to the polling nature of the delegation channel (see Section \ref{s:delegating}). Frequent cache misses and use of atomic instructions in delegated closures can substantially degrade trustee throughput vs. running closures with good memory locality. 
 
 Generally speaking, cache line contention and use of atomic instructions are a natural result of sharing memory between threads. By prohibiting the capture of references and pointers, \trust{} makes accidental shared memory patterns of programming much less likely in delegated code, and encourage cache friendly pass-by-value practices. 
 
@@ -112,7 +112,7 @@ Rust closures very efficiently and conveniently capture their environment, which
 However, only types with a size known at compile time may be captured in a Rust closure (or even allocated on the stack). 
 
 In conventional Rust code, variable size types, including strings, are stored on the heap, and referenced by a {\tt Box$<$T$>$} smart pointer. 
-For the reasons described above (see \S\ref{s:noref}), we do not allow {\tt Box$<$T$>$} or other types that include pointers or references to be captured in a closure:
+For the reasons described above (see Section \ref{s:noref}), we do not allow {\tt Box$<$T$>$} or other types that include pointers or references to be captured in a closure:
 only pure values may pass through the delegation channel. 
 
 As a result, variable size objects and other heap-allocated objects must be passed as explicit arguments rather than captured, so that they may be serialized before transmission over the delegation channel. 

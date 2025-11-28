@@ -197,7 +197,7 @@ The throughput of Trust16 is higher than Trust24 with 1,000--100,000 keys becaus
 small key space, while Trust16 can dedicate more resources to handle socket connections.
 However, the performance of Trust16 starts to degrade with more keys, because the limited number of trustees fall
 short when managing larger key spaces. With 24 trustees, the performance can be maintained at a high level.
-The difference between Trust16 and Trust24 suggests an important direction of future research. For I/O heavy processes
+The difference between Trust16 and Trust24 suggests an important direction of future research: For I/O heavy processes
 like key-value stores, dedicated trustees will often outperform sharing the core between trustees and clients.
 However, it is non trivial to correctly choose the number of trustees.
 Automatically adjusting the number of cores dedicated to trustee work at runtime would be preferable.
@@ -242,7 +242,7 @@ A complicating factor in this asynchronous approach results from {\tt memcached}
 For any one trustee-client pair, even asynchronous delegation requests are executed in-order, and responses arrive in-order.
 However, this is not guaranteed for requests issued to different trustees. 
 Consequently, the memcached socket worker thread must order the responses before they are transmitted over the network socket to the remote client.
-By contrast, our delegation-native key-value store in \ref{s:kvstore} sends responses out of order over the socket, and instead includes a request ID in the response.
+By contrast, our delegation-native key-value store in Section \ref{s:kvstore} sends responses out of order over the socket, and instead includes a request ID in the response.
 
 Another difference worth mentioning is that we don't allow delegation clients (in this case, the memcached socket worker thread) to access delegated data structures at all. 
 This means that instead of a pointer to a value in the table, clients receive a copy of the value. 

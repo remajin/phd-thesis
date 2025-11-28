@@ -90,4 +90,4 @@ In this default setting, the synchronous {\tt apply()} function suspends the cur
 %In principle, much of this could be implemented with kernel threads, but in practice, a light-weight user threading implementation is both more efficient, and more practical as it allows us to run our own scheduler. 
 For the purpose of future discussion, we define the term {\it delegated context} to mean the context where a delegated closure executes. Generally speaking, closures execute as part of a trustee fiber, on the trustee's stack. 
 Importantly, blocking delegation calls are not permitted from within delegated context, and will result in a runtime assertion failure. 
-In \S\ref{s:nesting}, we describe multiple ways around this constraint.
+In Sectin \ref{s:nesting}, we describe multiple ways around this constraint.
