@@ -26,7 +26,7 @@ In this section, each data point is the result of a single run.
 
 Below, we primarily evaluate on a two-socket Intel Xeon CPU Max 9462, of the Sapphire Rapids architecture. This machine has a total of 64 cores, 128 hyperthreads, and 384 GB of RAM. Unless otherwise noted, we use 128 OS threads. In testing, several older x86-64 ISA processors have shown similar trends -- these results are not shown here.
  For locking solutions, we use standard Rust {\tt Mutex<T>} and the spinlock variant provided by the Rust {\tt spin-rs-0.9.8} crate, as well as MCSLock$<$T$>$ provided by the Rust {\tt synctools-0.3.2} crate. For {\tt Trust<T>}, we show results for blocking delegation (Trust) as well as nonblocking delegation (Async).
-In Fig. \ref{f:fna_variables}, we also include TCLocks, a recent combining approach offering a transparent replacement for standard locks, via the Litl lock wrapper \cite{litl} for {\tt pthread\_mutex}. 
+In \ref{f:fna_variables}, we also include TCLocks, a recent combining approach offering a transparent replacement for standard locks, via the Litl lock wrapper \cite{litl} for {\tt pthread\_mutex}. 
 To be able to evaluate this lock, we wrote a separate C microbenchmark, matching the Rust version. In the interest of an apples-to-apples comparison, we first verified that the reported performance with stock {\tt pthread\_mutex} on the C microbenchmark matched the Rust {\tt Mutex<T>} performance in our Rust microbenchmark.
 
 Below, the {\tt Trust} results may be seen to represent any application with ample concurrency available in the form of conventional synchronous threads. {\tt Async} represents applications where a single thread may issue multiple simultaneously outstanding requests, e.g. a key-value store or web application server. 
@@ -176,7 +176,7 @@ The key size is 8 bytes and the value size is 16 bytes in the experiments.
 Prior to each run, we pre-fill the table, and report results from an average of 10 runs.
 %each lasting approximately \je{?} seconds.
 
-Figures \ref{f:kvstore_tput}--\ref{f:kvstore_tput_zipf} show the results from this small key-value store application,
+\ref{f:kvstore_tput} and \ref{f:kvstore_tput_zipf} show the results from this small key-value store application,
 for a varying total number of keys with 5\% write requests and 95\% read request,
 and Uniform as well as Zipfian \cite{zipf1949} access distributions.
 For Zipfian access, we use the conventional $\alpha=1$.
@@ -204,11 +204,11 @@ Automatically adjusting the number of cores dedicated to trustee work at runtime
 
 In principle, readers-writer locks have a major advantage over \trust{} in that they allow concurrent reader access,
 while \trust{} exclusively allows trustees to access the underlying data structure.
-To better understand this dynamic, Figures \ref{f:kvstore_tput_writes}--\ref{f:kvstore_tput_writes_zipf}
+To better understand this dynamic, \ref{f:kvstore_tput_writes} and \ref{f:kvstore_tput_writes_zipf}
 show key-value store throughput over a varying percentage of writes.
 
 Here, we use 1,000 keys for the Uniform access distribution, and 10,000,000 keys for Zipfian access distribution.
-We note that these are table sizes where lock-based approaches hold an advantage in Figures \ref{f:kvstore_tput}--\ref{f:kvstore_tput_zipf}. 
+We note that these are table sizes where lock-based approaches hold an advantage in \ref{f:kvstore_tput} and \ref{f:kvstore_tput_zipf}. 
 For Uniform access patterns, where there is limited contention given the table size of 1,000 keys, the
 impact of the write percentage is muted. For lock-based designs, the performance does drop somewhat, but remains
 at a high level even with 100\% writes. 
@@ -288,7 +288,7 @@ After this, we start over with a new, empty {\tt memcached} instance. Each data 
 By default, this means 28 {\tt memcached} threads pinned to hardware threads 0--27. Running with 56 hardware threads did not yield any further performance improvement.
 On the memtier side, we configure 28 threads, with four clients per thread, and pipelining set to 48.
 
-Figures \ref{f:memcached_tput}--\ref{f:memcached_tput_zipf} illustrates the throughput of {\tt memcached} as we vary the number of keys in the table. 
+\ref{f:memcached_tput} and \ref{f:memcached_tput_zipf} illustrates the throughput of {\tt memcached} as we vary the number of keys in the table. 
 While the absolute numbers are significantly lower than in the microbenchmarks and the key-value store, the overall picture from {\tt memcached} corresponds well with previous experiments. 
 
 Using \trust{} results in performance improvements of more than 5$\times$ when accessing popular objects, 
