@@ -3,14 +3,27 @@
 Below we discuss some avenues for further research and improvements to \trust{} and \name{}.
 
 \subsection{Better Profiling Tools}
+Due to the polling nature of trustees, it can be difficult to gauge how much useful work any given trustee is 
+doing at a particular point in the application's run time. This mismatch can cause expected performance to differ 
+from observed performance. As an example, even if some of the trustees are not getting any work, they will 
+still show up as busy on profiling tools like htop and perf. Tools that can distinguish between idle spinning and 
+productive work would greatly aid in diagnosing performance issues.
 
 \subsection{Better Load Balancing}
-Both \trust{} and \name{} leave the distribution of data across the trustees to the programmers. While this works 
-for an initial proof of concept, it complicates the application design where a change in workload distribution 
-can necessitate redistribution of data. If a few trustees are busy while most are free much of the time, that 
-leaves performance on the table. If this can be determined dynamically and the entrusted data be moved among 
-trustees accordingly, it might result in a more performant system. On the other hand it is possible that the 
-extra overhead of to doing diagnostics at runtime becomes unacceptable when all or even most of the trustees are 
-busy. More research is needed to establish what the correct design in this situation is.
+Both \trust{} and \name{} leave the responsibility for distributing data across trustees to the application 
+developer. While this approach is workable for a proof-of-concept, it complicates application design: any change 
+in workload distribution may require substantial data redistribution. This static assignment can also leave 
+performance unused—for example, when a few trustees are heavily loaded while others remain mostly idle. A dynamic 
+mechanism that detects imbalance at runtime and migrates entrusted data among trustees could potentially improve 
+throughput and responsiveness. However, such a solution introduces diagnostic and migration overhead, which may 
+be unacceptable when most or all trustees are already heavily loaded. Determining whether dynamic redistribution 
+is beneficial, and under what conditions, requires further empirical investigation.
 
 \subsection{Handling Network Conditions}
+\name{} relies on ideal network conditions—for example, environments with no congestion, symmetric routing, and 
+no dropped packets. However, such perfectly reliable networks are rare in real-world deployments, which could 
+significantly hinder the practical adoption of the protocol. To improve its robustness, additional mechanisms 
+for managing adverse network conditions need to be explored. Potential strategies include implementing 
+rate-limiting techniques to prevent overload, incorporating retransmission methods to recover from lost packets, 
+and leveraging Explicit Congestion Notification (ECN) to proactively signal and respond to network congestion. 
+Investigating these approaches presents valuable directions for future research and development.
