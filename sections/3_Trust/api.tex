@@ -97,6 +97,7 @@ To avoid this risk, {\tt launch()} is implemented only for {\tt Trust<Latch<T>{>
 \label{s:noref}
 
 Using the Rust type system, we ensure that delegated closures in \trust{} cannot capture values that contain any references or pointers. 
+This is discussed in more detail in Section \ref{sg:noref}.
 
 In principle, this is far stricter than what is necessary: the existing and pervasive Rust traits {\tt Send} and {\tt Sync} already describe
 the types that may be safely moved and shared between threads, and this continues to hold within \trust{}. 

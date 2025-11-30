@@ -2,7 +2,7 @@
 \input{figures/gossamer_design}
 
 \name{} allows developers to write rack-wide applications just like single machine applications. Programmers will 
-use the delegation framework to write applications that are distributed by gossamer with very few changes to the 
+use the delegation framework to write applications that are distributed by \name{} with very few changes to the 
 code. \ref{fig:design} shows a high level view of what a rack with multiple \name{} applications looks like. 
 Developers use the controller machine to interact with the rack and launch applications. Here controller machine 
 is just a normal machine running \name{} processes like any other machine in the rack, the only significance is 
@@ -46,7 +46,7 @@ like any other normal process. The main difference is that instead of using syst
 \subsection{Trustee, Trust and Property}
 \input{figures/trustntrustee}
 
-Gossamer builds on the Trust/Trustee concept from \cite{ahmad2024trust} (Chapter \ref{trust} in this dissertation), 
+\name{} builds on the Trust/Trustee concept from \cite{ahmad2024trust} (Chapter \ref{trust} in this dissertation), 
 which we introduce briefly here. A \textit{Trustee} is a worker fiber that processes delegation requests and sends 
 back the response. The application can entrust some data to a trustee if the delegated work needs access to it and 
 receive a \textit{Trust} that holds relevant metadata. This entrusted data is referred to as \textit{Property}. 
@@ -56,34 +56,36 @@ they can also start delegating work that needs access to same property. Multiple
 to a single trustee at the same time. Trustees can act as remote or local trustees based on where the fiber 
 trying to access the property lives in the rack.
 
-\subsection{Delegation Workflow}
-\label{s:del_flow}
-\input{tables/gsm_api}
+% \subsection{Delegation Workflow}
+% \label{s:del_flow}
+% \input{tables/gsm_api}
 
-\name{} provides both blocking and nonblocking/asynchronous delegation operations. In case of blocking operations, the 
-delegating fiber will wait for the response from the trustee before continuing. For nonblocking delegation, the 
-delegating fiber will instead provide a callback closure to be executed upon completion of the request, and 
-continue without waiting. First we will describe the workflow for blocking delegation requests and then specify 
-how that differs from the nonblocking delegation. Each fiber issues a request that is put in a pending queue 
-before voluntarily yielding the runtime. Each thread has a fiber that periodically checks for any incoming 
-responses and sends any requests in the pending queue. As there will be many fibers running on each thread this 
-will allow the polling fiber to send multiple requests as a larger batch, increasing the throughput of the system. 
-The requests originating from a client that are destined for the same trustee are batched in a 
-\textit{RequestSlot} (discussed in detail in Section \ref{sg:slots}) that can hold a variable  number of requests depending 
-on their size. On the trustee side, one of the fibers is dedicated to polling for any incoming requests. Since any 
-incoming requests in a RequestSlot will be contiguous in memory, it can complete all of them and then send all of 
-the responses in a single batch as well. Similar to requests, responses are batch using a \textit{ResponseSlot}. 
-The fiber that polls for responses on the requesting thread will then process the responses and add the 
-corresponding fibers back in to the ready to run queue. The main difference for async delegation is that instead 
-of yielding after enqueuing the request, it just keeps going and enqueues any subsequent requests as well. This 
-fiber will yield the runtime when the pending queue is full, after which the response polling fiber can run and 
-send all of the requests to the respective trustees. Once it receives the responses, it can execute any callback 
-closures the user might have provided. This means that there is no benefit to having multiple fibers per thread 
-that issue requests as that is not needed for batching and the fibers will be yielding far less frequently. 
-\ref{tab:delegationexample} shows a small example program that uses both types of delegation.
+% \name{} provides both blocking and nonblocking/asynchronous delegation operations. In case of blocking operations, the 
+% delegating fiber will wait for the response from the trustee before continuing. For nonblocking delegation, the 
+% delegating fiber will instead provide a callback closure to be executed upon completion of the request, and 
+% continue without waiting. First we will describe the workflow for blocking delegation requests and then specify 
+% how that differs from the nonblocking delegation. Each fiber issues a request that is put in a pending queue 
+% before voluntarily yielding the runtime. Each thread has a fiber that periodically checks for any incoming 
+% responses and sends any requests in the pending queue. As there will be many fibers running on each thread this 
+% will allow the polling fiber to send multiple requests as a larger batch, increasing the throughput of the system. 
+% The requests originating from a client that are destined for the same trustee are batched in a 
+% \textit{RequestSlot} (discussed in detail in Section \ref{sg:slots}) that can hold a variable  number of requests depending 
+% on their size. On the trustee side, one of the fibers is dedicated to polling for any incoming requests. Since any 
+% incoming requests in a RequestSlot will be contiguous in memory, it can complete all of them and then send all of 
+% the responses in a single batch as well. Similar to requests, responses are batch using a \textit{ResponseSlot}. 
+% The fiber that polls for responses on the requesting thread will then process the responses and add the 
+% corresponding fibers back in to the ready to run queue. The main difference for async delegation is that instead 
+% of yielding after enqueuing the request, it just keeps going and enqueues any subsequent requests as well. This 
+% fiber will yield the runtime when the pending queue is full, after which the response polling fiber can run and 
+% send all of the requests to the respective trustees. Once it receives the responses, it can execute any callback 
+% closures the user might have provided. This means that there is no benefit to having multiple fibers per thread 
+% that issue requests as that is not needed for batching and the fibers will be yielding far less frequently. 
+% \ref{tab:delegationexample} shows a small example program that uses both types of delegation.
 
 \subsection{NoRef}
-Gossamer leverages the Rust type system to prevent the sending of references over delegation channels. One of 
+\label{sg:noref}
+
+\name{} leverages the Rust type system to prevent the sending of references over delegation channels. One of 
 the first challenges that arise when extending delegation to multiple machines is the fact that any pointers 
 or references captured by a delegated closure will not be valid on a remote machine. This reference or pointer 
 will result in undefined behavior on any machine other than where it originated. To prevent this, \name{} uses 
@@ -103,16 +105,16 @@ compile time will inform them what the issue is and direct them to use the seria
 
 \subsection{Request size and TCP fallback}
 \label{s:tcp_fallback}
-As described in Section \ref{s:del_flow}, the requests going from a client thread to the same trustee will be batched and 
-on trustee side the requests coming from a single thread will all be contiguous in memory. This is achieved by 
-the trustee having a pre-allocated space in memory (called requestSlot) for incoming requests from each client 
+The requests going from a client thread to the same trustee are batched and 
+on trustee side the requests coming from a single thread are all contiguous in memory. This is achieved by 
+the trustee having a pre-allocated space in memory (called request slot) for incoming requests from each client 
 thread. This limits how many requests a client thread can send in a single batch depending on how much data is 
 being sent with each request. As an example if each request captures 32 bytes of captured data, the 
 total request size is 40 bytes. Next section goes into detail about the format of a \name{} delegation request. 
-Assuming 1 KB requestSlot, one batch can have at most 25 requests. While this allows us to optimize for small 
-requests it also places a hard limit on how much data a request can capture i.e. the size of the requestSlot. 
+Assuming 1 KB request slot, one batch can have at most 25 requests. While this allows us to optimize for small 
+requests it also places a hard limit on how much data a request can capture i.e. the size of the request slot. 
 To work around this limit and support larger requests, \name{} uses TCP to send any captured data larger than 
-that separately, while the request header goes in the requestSlot as normal. This degrades the performance 
+that separately, while the request header goes in the request slot as normal. This degrades the performance 
 severely as TCP is much slower than RDMA. We use TCP here instead of RDMA because, as mentioned in Section \ref{s:rdmaapi}, 
 RDMA needs the memory used to be pre-registered with the NIC, placing an upper limit on how much data can be sent 
 using RDMA at once, i.e. the size of pre-registered buffer. Since there would be an upper limit anyway and larger 

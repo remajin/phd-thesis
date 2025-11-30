@@ -1,5 +1,9 @@
-As delegation does not rely on shared memory, it can serve as a powerful programming
-model for both concurrent and distributed computing. We present two system, \trust{} and
+Delegation is a concurrency technique where a thread hands off work on a shared object to a single designated 
+owner instead of accessing the object directly. Because only the owner thread ever mutates the object, no locks 
+are needed, other threads interact with it by sending requests. This avoids data races, simplifies reasoning, 
+and can outperform lock-based designs by eliminating contention and complex synchronization.
+As delegation does not rely on shared memory, its applications extend naturally beyond local concurrency to 
+broader distributed settings. We present two system, \trust{} and
 \name{}, to demonstrate the versatility of this approach across different domains.
 
 \trust{} introduces a type- and memory-safe alternative to traditional locking in concurrent

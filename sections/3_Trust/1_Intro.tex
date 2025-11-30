@@ -6,14 +6,13 @@ implemented using atomic compare-and-swap (CAS) operations. By their nature, ato
 today's highly parallel CPU pipelines of work until the instruction has retired. This effect is exacerbated 
 when multiple cores are accessing the same object, resulting in the combined effect of frequent cache misses 
 and cores waiting for each other to release the cache line in question, while the atomic instructions prevent 
-them from doing other work.
+them from doing other work. These effects are further strengthened in NUMA architectures \cite{203195,10.1145/3591195.3595276,Velten_2022,PAN2021102188}.
 
 Delegation \cite{dice2011flath,calciu2013delegation,petrovic2015delegation,fatourou2011combining,hendler2010flat,oyama1999combining,yew1987combining,shalev2006combining,david2013everything,ffwd}, 
-also known as message-passing or light-weight remote procedure calls (LRPC), offers a highly scalable 
+also known as light-weight remote procedure calls (LRPC), offers a highly scalable 
 alternative to locking. Here, each shared object\footnote{Here, we use {\it object} to mean a data structure 
-that would be protected by a single lock.} is placed in the care of a single core ({\it trustee} below). Using 
-a shared-memory message passing protocol, other cores (clients) issue requests to the trustee, specifying 
-operations to be performed on the object.
+that would be protected by a single lock.} is placed in the care of a single core. Other cores issue requests to 
+this designated core, specifying operations to be performed on the object.
 
 Compared to locking, where threads typically contend for access, and may even suspend execution to wait for 
 access, delegation requests from different clients are submitted to the trustee in parallel and without contention. 

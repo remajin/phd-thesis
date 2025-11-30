@@ -81,10 +81,11 @@ the following two issues.
 \begin{itemize}
 	\item \trust{} does not support a blocking delegation operation when in the middle of another delegation 
 	request. For example calling \textit{apply} on a trust from within a closure that itself is used for 
-	delegation would cause the system to hang and never finish.
+	delegation would cause the system to hang and never finish. In the implementation, a runtime assertion 
+	raises a panic if this condition is encountered.
 	\item If the integer used for counting references, \textit{refcount} below, is incremented and decremented 
-	asynchronously, i.e. with a nonblocking delegation call, it could lead to use after free bugs. Let's 
-	consider the following scenario: Thread A clones a trust with only one reference and sends an async request 
+	asynchronously, i.e. with a nonblocking delegation call, it could lead to use after free bugs. Consider the 
+	following scenario: Thread A clones a trust with only one reference and sends an async request 
 	to increment its refcount. The cloned trust is then sent to Thread B that drops it, sending another async 
 	request to decrement its refcount. While the requests issued by the same fiber are guaranteed to be 
 	completed in the same order they are issued, there is no such guaranty across multiple threads or even 
