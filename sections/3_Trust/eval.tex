@@ -21,7 +21,7 @@ which measure the performance impact of \trust{} in the context of a complete sy
 
 \subsection{Fetch and Add: Throughput}
 
-For our first microbenchmark, we use a basic fetch-and-add application. Here, a number of threads repeatedly increment a counter chosen from a set of one or more, and fetches the value of the counter. In common with prior work on synchronization and delegation \cite{dice2011flath,calciu2013delegation,petrovic2015delegation,fatourou2011combining,hendler2010flat,oyama1999combining,yew1987combining,shalev2006combining,david2013everything}, we also include a single {\tt pause} instruction in both the critical section and the delegated closures. The counter is chosen at random, either from a uniform distribution, or a zipfian distribution. Each thread completes 1 million such increments. 
+For our first microbenchmark, we use a basic fetch-and-add application. Here, a number of threads repeatedly increment a counter chosen from a set of one or more, and fetches the value of the counter. In common with prior work on synchronization and delegation \cite{dice2011flath,calciu2013delegation,petrovic2015delegation,fatourou2011combining,hendler2010flat,oyama1999combining,yew1987combining,shalev2006combining,david2013everything}, we also include a single {\tt pause} instruction in both the critical section and the delegated closures. The counter is chosen at random, either from a uniform distribution, or a Zipfian distribution. Each thread completes 1 million such increments. 
 In this section, each data point is the result of a single run.
 
 Below, we primarily evaluate on a two-socket Intel Xeon CPU Max 9462, of the Sapphire Rapids architecture. This machine has a total of 64 cores, 128 hyperthreads, and 384 GB of RAM. Unless otherwise noted, we use 128 OS threads. In testing, several older x86-64 ISA processors have shown similar trends -- these results are not shown here.
@@ -72,7 +72,7 @@ Moreover, we struggled to apply TCLocks to memcached (which consistently crashed
 Zipf's law \cite{zipf1949} elegantly captures the distribution of words in written language. In brief, it says that the probability of word occurrence $p_w$ is distributed according to the rank $r_w$ of the word, thus: $p_w \propto {r_w}^{-\alpha}$, where $\alpha \sim 1$.
 Similar relationships, often called ``power laws'', are common in areas beyond written language \cite{zipf1949,boltzmann,Ojovan_2006,DODDS20019,Venture}, sometimes with a greater value for $\alpha$. The higher the $\alpha$, the more pronounced is the effect of popular keys, resulting in congestion. 
 
-\ref{f:fna_variables_zipf} shows the results of our fetch-and-add experiment, but with objects selected according to a zipfian distribution ($\alpha=1$) instead of the uniform distribution above, representing a common skewed access distribution. 
+\ref{f:fna_variables_zipf} shows the results of our fetch-and-add experiment, but with objects selected according to a Zipfian distribution ($\alpha=1$) instead of the uniform distribution above, representing a common skewed access distribution. 
 
 With this skewed access pattern, \trust{} overwhelmingly outperforms locking across the range of table sizes. 
 This is explained by the relatively low throughput of a single lock. 

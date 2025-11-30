@@ -11,12 +11,12 @@ set xrange [0:*]
 
 # a = 0
 # cdf(x) = (a = (x+a),a/500)
-plot "~/thesis/figures/data/hydra_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 1 title "hydra server sharded",\
-	"~/thesis/figures/data/trust_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 2 title "trust client sharded",\
-	"~/thesis/figures/data/rwlock_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 6 title "rwlock client sharded",\
-	"~/thesis/figures/data/dashmap_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 5 title "dashmap client sharded",\
-	"~/thesis/figures/data/redis_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 4 title "redis",\
-	"~/thesis/figures/data/redis_r6615_ycsbb_u.txt" u 2:($8*8.8) with lines dashtype 2 title "redis hypothetical",\
+plot "~/thesis/figures/data/hydra_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 1 title "Hydra server sharded",\
+	"~/thesis/figures/data/trust_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 2 title "Trust client sharded",\
+	"~/thesis/figures/data/rwlock_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 6 title "Rwlock client sharded",\
+	"~/thesis/figures/data/dashmap_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 5 title "Dashmap client sharded",\
+	"~/thesis/figures/data/redis_r6615_ycsbb_u.txt" u 2:8 with linespoint dashtype 1 pointtype 4 title "Redis",\
+	"~/thesis/figures/data/redis_r6615_ycsbb_u.txt" u 2:($8*8.8) with lines dashtype 2 title "Redis hypothetical",\
 	# "nopt.txt" u ($2*$4):6 with linespoint title "quadratic number of QPs",\
 	# "erpc/erpc_t28_b7.txt" u 1:4 with linespoint title "b7"
 	

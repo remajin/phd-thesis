@@ -69,14 +69,14 @@ production ready key-value store. We also compare against a few single machine s
 which case, the client needs to divide the key space (also called sharding) and send queries to the appropriate 
 server. These experiments are denoted ``client sharded" in the figures. The single machine key-value stores include a delegation based hashmap called trust here, Dashmap from Rust 
 crate ``dashmap" version ``6.1.0" \cite{dashmap6} and a hashmap with 4096 shards protected by a readers-writers lock referred as 
-rwlock below. In case of Redis, we disable replication and disk backup and provide two I/O threads per instance. 
+Rwlock below. In case of Redis, we disable replication and disk backup and provide two I/O threads per instance. 
 Each server machine runs eight Redis instances. This configuration was selected after extensive experimentation 
 to ensure maximum performance. The key space 
 these experiments consists of one million keys and queries consist of 8 byte keys and 16 byte values. Each reported 
 data point here is an average of three runs after an initial warm up stage that populates all the keys. For these 
 experiments up to 8 machines act as servers and up to 4 machines act as clients with each client machine running 
 256 threads over 64 cores. For Hydra, each client thread connects to one server using TCP. However, for trust, 
-dashmap and rwlock, each thread needs to connect with each server.
+Dashmap and Rwlock, each thread needs to connect with each server.
 
 \ref{fig:kv_ycsbc_u} and \ref{fig:kv_ycsbb_u} show the number of operations per second for a read only workload and 
 5\% write, 95\% read workload respectively with a uniform distribution of keys. Hydra scales much better than 
@@ -87,17 +87,17 @@ servers. This reduces the batch size and increases the number of packets being s
 results in the servers spending more time processing the TCP communication. This is evidenced by perf, the Linux 
 performance analysis tool \cite{linuxperf}, showing that 
 a trust server, which is also delegation based, spends 30\% more time in kernel mode than a Hydra server. Dashmap 
-and rwlock do better than trust due to low contention but suffer from higher system call overhead much the same. 
+and Rwlock do better than trust due to low contention but suffer from higher system call overhead much the same. 
 Redis is a production ready key-value store that typically offers 400,000 to 600,000 operations per second 
 depending on workload \cite{redis-bench}. This is significantly less than per thread performance of all of the 
 stores in this experiment. We also include a line labeled ``redis hypothetical'', showing how it would scale were 
 it to have the same per thread performance as Hydra.
 
 \ref{fig:kv_ycsbc_z} and \ref{fig:kv_ycsbb_z} show the number of operations per second for a read only workload and 
-5\% write, 95\% read workload respectively with a zipfian distribution of keys. We see similar trends for read only 
-workload but dashmap and rwlock scale particularly poorly with the mixed workload due to high contention resulting 
-from most of the queries being about a small number of keys. The contention stems from rwlock and dashmap, which 
-also uses an rwlock internally, not allowing any readers while the value for a particular key is being updated. 
+5\% write, 95\% read workload respectively with a Zipfian distribution of keys. We see similar trends for read only 
+workload but Dashmap and Rwlock scale particularly poorly with the mixed workload due to high contention resulting 
+from most of the queries being about a small number of keys. The contention stems from Rwlock and Dashmap, which 
+also uses an Rwlock internally, not allowing any readers while the value for a particular key is being updated. 
 This is not an issue with either of the delegation based systems as reads and writes are treated the same way.
 
 \subsection{Application: Single Source Shortest Path (SSSP)}

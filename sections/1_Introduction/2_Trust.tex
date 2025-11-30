@@ -1,4 +1,13 @@
 \section{\trust{}}
+
+After single-threaded performance plateaued a decade or more ago, programmers have diverted their attention to 
+making multi-threaded applications. This gives rise to the problem of synchronizing many threads as they access 
+the same data for correctness and making it efficient to not lose too much performance when compared to single 
+threaded applications. Today locks dominate this paradigm to the extent that there are hardware mechanisms in 
+place to make the use of locking easier and more efficient. Some examples include atomic exchange or atomic 
+increment instructions. However, a delegation based programming model can offer better performance than a locking 
+based one \cite{ffwd,ahmad2024trust,rcl}.
+
 We present \trust{} (pronounced {\it trust-tee}), a programming abstraction and runtime system which 
 provides safe, high-performance access to a shared object (or $property$) of type $T$. Briefly, a \trust{} 
 provides a family of functions of the form: $$apply(c:FnOnce(\&mut~T)\rightarrow U)\rightarrow U,$$ which 

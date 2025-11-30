@@ -1,7 +1,7 @@
 \section{\name{}}
 
-Shared memory enables programmers to write multi-threaded applications, making them perform better but also increase 
-the programming complexity. The same is true when scaling applications from a single machine to a distributed 
+Multi-threaded applications perform much better than single threaded applications but are also more complex to 
+design. The same is true when scaling applications from a single machine to a distributed 
 setting. Here, lack of shared memory means that not all of the compute units (threads/processes) can access all 
 of the shared objects, which also complicates the synchronization mechanisms. Distributed applications, historically, 
 rely on message passing to share data. Remote Procedural Calls (RPCs) is one such framework where threads can send 
