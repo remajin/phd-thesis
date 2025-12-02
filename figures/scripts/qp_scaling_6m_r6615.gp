@@ -13,5 +13,3 @@ set xrange [0:*]
 # cdf(x) = (a = (x+a),a/500)
 plot "~/thesis/figures/data/qp_red_6m.txt" u ($2*$4):6 with linespoint dashtype 1 pointtype 1 title "reduced number of QPs",\
 	"~/thesis/figures/data/qp_nopt_6m.txt" u ($2*$4):6 with linespoint dashtype 1 pointtype 2 title "quadratic number of QPs",\
-	# "erpc/erpc_t28_b7.txt" u 1:4 with linespoint title "b7"
-	
