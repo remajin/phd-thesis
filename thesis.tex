@@ -1,48 +1,91 @@
 % No need to change the first 4 lines of this file
-\documentclass{uicthesi}
+\documentclass[12pt,reqno,oneside]{amsbook}
+% \documentclass{uicthesi}
 \input{sections/other/__preamble}
 \input{sections/other/__commands}
 \begin{document}
 
-% The title of the thesis
-\title{Delegation for Multi-Threaded and Rack-Scale Software}
+\newcommand{\thetitle}{Delegation for Multi-Threaded and Rack-Scale Software}
 
-% Your full name
-\author{Noaman Ahmad}
-
-% Mention all degrees you hold currently
-\pdegrees{BS CS, Lahore University of Management Sciences, 2018}
-\pdegrees{MS CS, University of Illinois at Chicago, 2025}
-
-% Probably no need to edit this
-\degree{Doctor of Philosophy in Computer Science}
-
-% Add your committee members, one per line, mentioning external universities
-% where relevant
-\committee{Jakob Eriksson, Chair and Advisor \\
+%Edit the following
+\newcommand{\institution}{University of Illinois Chicago} 
+\newcommand{\degree}{Doctor of Philosophy}
+\newcommand{\programname}{Computer Science}
+\newcommand{\committee}{Jakob Eriksson, Chair and Advisor \\
 Xingbo Wu, Microsoft Research \\
 Ajay Kshemkalyani \\
 Lu\'{i}s Pina \\
 Erdem Koyuncu \\
 Michael Papka}
+\newcommand{\theauthor}{Noaman Ahmad}
+\newcommand{\priordegrees}{BS CS, Lahore University of Management Sciences, 2018\\ MS CS, University of Illinois at Chicago, 2025}
+\newcommand{\graduationyear}{2026}
 
-% No need to make any changes to the next 10 lines
-\maketitle
-\copyrightpage
+% Leave the following for metadata
+\author{\theauthor}
+\title{\thetitle}
+\date{\today}
+
+\frontmatter
+
+% Custom title page
+% Take care in making substantial changes to this as it needs to still work with latexml
+\begin{titlepage}
+    \centering
+	{{\Large {\textbf{\thetitle}}}  \par}
+    \vspace{2cm}
+    {BY\par}
+    \vspace{0.5cm}
+    {\theauthor}\\
+    {\priordegrees}\\
+    \vspace{2cm}
+	DISSERTATION\\
+	\vspace{1cm}
+	Submitted as partial fulfillment of the requirements\\ \vspace{0.2cm}
+	for the degree of {\degree} in {\programname} \\ \vspace{0.2cm}
+	in the Graduate College of the \\  \vspace{0.2cm}
+	University of Illinois Chicago, {\graduationyear}\\
+	\vspace{1cm}
+	Chicago, Illinois
+		
+	\raggedright
+    \vfill
+    Defense Committee: \\
+    \committee \\
+\end{titlepage}
+
+\setcounter{page}{2} %This is UIC requirement, the title page is (i)
+\spacing{2}
+
+\vspace*{2.5in}
+\begin{center}
+      Copyright by\\\theauthor\\\graduationyear
+\end{center}
+\vfill\eject
+
 \input{sections/other/_1_dedication}
 \input{sections/other/_2_acknowledgement}
 \input{sections/other/_3_contribution_of_authors}
+
+\endspacing
+\singlespace
+
 \setcounter{tocdepth}{2}
 \tableofcontents
 \listoftables
 \listoffigures
 % \printglossary[type=\acronymtype,title=LIST OF ABBREVIATIONS,style=clong]
 \setcounter{table}{0}
+
+\endsinglespace
+\spacing{2}
+
 \input{sections/other/_4_summary}
 
 % This is where you write the paper.  I've included a sample chapter
 % below, to suggest a possible organization.  Just add references to the
 % rest of your paper here.
+\mainmatter
 \input{sections/1_Introduction/0_index}
 \input{sections/2_Background/0_index}
 \input{sections/3_Trust/0_index}
@@ -68,7 +111,7 @@ Michael Papka}
 
 % No need to make any changes to this file below this line.
 \newpage
-\bibformb
+\bibliographystyle{plain}
 \bibliography{thesis}
 \newpage
 \input{sections/other/_5_vita}

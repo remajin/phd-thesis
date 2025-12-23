@@ -15,6 +15,9 @@ clean:
 	@for extension in $(extensions_to_clean); do \
 		find . -type f -name "*.$$extension" -delete;\
 	done;
+	@if [ -f thesis.epub ]; then \
+		rm thesis.epub;\
+	fi;
 
 plots:
 	@for p in $(PLOTS); do \
@@ -23,5 +26,7 @@ plots:
 
 thesis: plots
 	latexmk -bibtex -pdf thesis
-	makeglossaries thesis
 	pdflatex -bibtex thesis
+
+epub:
+	latexmlc -dest=thesis.epub thesis.tex

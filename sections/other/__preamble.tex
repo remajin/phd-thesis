@@ -9,7 +9,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{euler}
-\usepackage[xindy={glsnumbers=false},nonumberlist,acronym,nopostdot,nogroupskip,nomain]{glossaries}
+% \usepackage[xindy={glsnumbers=false},nonumberlist,acronym,nopostdot,nogroupskip,nomain]{glossaries}
 \usepackage{xspace}
 \usepackage[htt]{hyphenat}
 \usepackage{float}
@@ -26,24 +26,27 @@
 \usepackage{pgf}
 \usepackage{fancyvrb}
 \usepackage{pdfpages}
+\usepackage{setspace}
+\usepackage{geometry}
+\geometry{margin=1in, top=1.3in}
 
-\newglossarystyle{clong}{%
- \renewenvironment{theglossary}%
-     {\begin{longtable}{p{.2\linewidth}p{.8\linewidth}}}%
-     {\end{longtable}}%
-  \renewcommand*{\glossaryheader}{}%
-  \renewcommand*{\glsgroupheading}[1]{}%
-  \renewcommand*{\glossaryentryfield}[5]{%
-    \glstarget{##1}{##2} & ##3\glspostdescription\space ##5\\}%
-  \renewcommand*{\glossarysubentryfield}[6]{%
-     & \glstarget{##2}{\strut}##4\glspostdescription\space ##6\\}%
-  %\renewcommand*{\glsgroupskip}{ & \\}%
-}
+% \newglossarystyle{clong}{%
+%  \renewenvironment{theglossary}%
+%      {\begin{longtable}{p{.2\linewidth}p{.8\linewidth}}}%
+%      {\end{longtable}}%
+%   \renewcommand*{\glossaryheader}{}%
+%   \renewcommand*{\glsgroupheading}[1]{}%
+%   \renewcommand*{\glossaryentryfield}[5]{%
+%     \glstarget{##1}{##2} & ##3\glspostdescription\space ##5\\}%
+%   \renewcommand*{\glossarysubentryfield}[6]{%
+%      & \glstarget{##2}{\strut}##4\glspostdescription\space ##6\\}%
+%   %\renewcommand*{\glsgroupskip}{ & \\}%
+% }
 
 \makesavenoteenv{tabular}
 \makesavenoteenv{table}
 
-\input{sections/other/__abbrs}
+% \input{sections/other/__abbrs}
 \def\new@fontshape#1#2#3#4#5{\expandafter
      \edef\csname#1/#2/#3\endcsname{\expandafter\noexpand
                                  \csname #4\endcsname}}
@@ -87,4 +90,44 @@
 
 \lstset{language=Rust, style=Boxed}
 
-\makeglossaries
+\renewcommand{\descriptionlabel}[1]{%
+  \hspace\labelsep\upshape\bfseries #1%
+}
+
+\makeatletter
+
+% Save original headers
+\let\ams@oddhead\@oddhead
+\let\ams@evenhead\@evenhead
+
+% Make room for two lines
+\setlength{\headheight}{24pt}
+
+\def\@oddhead{%
+  \vbox{%
+    % page number on its own line
+    \hbox to \textwidth{\hfil\thepage}%
+    \vskip 4pt
+    % original header, full width, no page number
+    \hbox to \textwidth{%
+      \let\thepage\relax
+      \ams@oddhead
+    }%
+  }%
+}
+
+\def\@evenhead{%
+  \vbox{%
+    \hbox to \textwidth{\thepage\hfil}%
+    \vskip 4pt
+    \hbox to \textwidth{%
+      \let\thepage\relax
+      \ams@evenhead
+    }%
+  }%
+}
+
+\makeatother
+
+
+% \makeglossaries
