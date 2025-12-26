@@ -39,10 +39,6 @@ in the rack. Fibers that need to access shared data make delegation requests con
 the data as needed. From the point of view of the operating system, a single instance of \name{} process behaves 
 like any other normal process. The main difference is that instead of using system calls like 
 \textit{getpid()}, a \name{} process contacts the daemon to get any metadata needed.
-\input{tables/trust_vs_gsm}
-% \input{tables/noref}
-
-\ref{tab:trust_vs_gsm} shows a minimal \trust{} example and how the same program looks like when using \name{}.
 
 
 \subsection{Trustee, Trust and Property}
@@ -84,8 +80,12 @@ trying to access the property lives in the rack.
 % that issue requests as that is not needed for batching and the fibers will be yielding far less frequently. 
 % \ref{tab:delegationexample} shows a small example program that uses both types of delegation.
 
-\subsection{NoRef}
+\subsection{Pointers and Serialized Data}
 \label{sg:noref}
+
+\input{tables/auto}
+\input{tables/noref}
+\input{figures/error}
 
 \name{} leverages the Rust type system to prevent the sending of references over delegation channels. One of 
 the first challenges that arise when extending delegation to multiple machines is the fact that any pointers 
@@ -98,12 +98,15 @@ a trait for every data type, be it an existing type or user defined. A negative 
 exclude a data type from the auto implementation. \name{} defines an auto trait called \textit{NoRef}. Then 
 all the types that contain a reference or raw pointer are given negative implementation. The function 
 \textit{apply}, that is used to send delegation messages as described in previous section, requires all the 
-closures to comply with the NoRef trait as shown in \ref{fig:trustntrustee}. This however limits severely what 
+closures to comply with the NoRef trait as shown in \ref{fig:trustntrustee}. This is implemented using the code 
+shown in \ref{tab:auto}. This however limits severely what 
 type of data can be captured by any delegated closure as many frequently used types like strings and vectors 
 contain pointers internally. To get around that \name{} provides a way to send any data type that can be 
-serialized along with the closure as an extra parameter to the delegated closure. If the programmer makes a 
+serialized along with the closure as an extra parameter to the delegated closure. \ref{tab:noref} shows a code 
+example where a Box, a Rust smart pointer, is serialized instead of being captured. If the programmer makes a 
 mistake and tries to use a closure that has captured a reference for delegation, a custom error message at 
-compile time will inform them what the issue is and direct them to use the serialization method instead.
+compile time will inform them what the issue is and direct them to use the serialization method instead. An example 
+of this message is shown in \ref{fig:error}.
 
 \subsection{Request size and TCP fallback}
 \label{s:tcp_fallback}
@@ -220,6 +223,7 @@ is a similar system in place for response slots as well.
 
 \subsection{Scaling impact of increasing number of Queue Pairs}
 
+\input{figures/qp_scaling}
 \input{figures/qp_scaling_6m_r6615}
 
 As discussed in Section \ref{s:rdmaapi}, RDMA communications happen via a queue pair (QP). Theoretically each machine
@@ -232,7 +236,8 @@ limitation. The NIC caches any recently used QPs, along with page mappings for a
 in its SRAM. Increasing the number of QPs results in NIC running out of SRAM, which in turn results in cache 
 misses. We use a middle of the road system where instead of each thread making a separate QP for every other 
 thread, it makes a QP for each machine in the rack. This reduces the total number of QPs in the system to 
-$num\_machines^2 \times num\_threads\_per\_machine$. \ref{fig:qp_scaling_6m} shows an experiment that demonstrates 
+$num\_machines^2 \times num\_threads\_per\_machine$. \ref{fig:qp_scaling} shows the reduction in the number of 
+connections gained by using this design. \ref{fig:qp_scaling_6m} shows an experiment that demonstrates 
 the performance gained by reducing the number of QPs in the system. This experiment was performed with 6 machines, 
 all connected to switch with 100Gb/s ethernet links. Each thread writes 256 bytes in a randomly chosen remote 
 thread's memory twenty million times. As the number of threads increases, thereby increasing the number of QPs, 

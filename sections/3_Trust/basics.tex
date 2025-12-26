@@ -1,6 +1,6 @@
 \section{\trust{}: The Basics}
 \label{st:design}
-\begin{figure*}[ht]
+\begin{table*}[ht]
   \begin{lstlisting}  
 let ct = local_trustee().entrust( 17 );           // ct: Trust<i32>
 ct.apply( |c| *c+=1 );                             //  c: &mut i32 
@@ -8,8 +8,8 @@ assert!(ct.apply( |c| *c ) == 18 );
 \end{lstlisting}
   \caption{Minimal \trust{} example. An entrusted counter, referenced by {\tt ct} is initialized to 17, then incremented once. 
   The comments on the right indicate the types of the variables.}
-  \label{f:minimal}
-\end{figure*}
+  \label{tab:minimal}
+\end{table*}
 
 The objective of \trust{} is to provide an intuitive API for safe, efficient access to shared objects. Naturally, our design motivation is to support delegation, but the \trust{} API can in principle also be implemented using locking, or a combination of locking and delegation. 
 Below, we first introduce the basic \trust{} programming model, as well as the key terms {\it trust, property, trustee} and {\it fiber} in the \trust{} context, before digging deeper into the design of \trust{}. 
@@ -21,54 +21,13 @@ Below, we first introduce the basic \trust{} programming model, as well as the k
 A \trust{} is a thread-safe reference counting smart-pointer, similar to Rust's {\it Arc$<$T$>$}. 
 To create a \trust{}, we clone an existing \trust{} or $entrust$ a new object, or $property$ of type $T$, that is meant to be shared between threads. 
 Once entrusted, the property can only be accessed by {\it applying} closures to it, using a trust.
-\ref{f:minimal} illustrates this through a minimal Rust example.
+\ref{tab:minimal} illustrates this through a minimal Rust example.
 Line 1 entrusts an integer, initialized to 17, to the local trustee - the trustee fiber running on the current kernel thread. 
 Line 2 applies an anonymous closure to the counter, via the trust.
 The closure expected by {\tt apply} takes a mutable reference to the property as argument, allowing it unrestricted access to the property, in this case, our integer. 
 The example closure increments the value of the integer. 
 The assertion on line 3 is illustrative only. Here, we apply a second closure to retrieve the value of the
 entrusted integer\footnote{A note on ownership: While the passed-in closure takes only a reference to the property, the Rust syntax $*c$ denotes an explicit dereference, essentially returning a copy of the property to the caller. This will pass compile-time type-checking only for types that implement $Copy$, such as integers.}.
-
-\begin{figure*}[ht]
-  \begin{subfigure}[t]{.6\textwidth}
-    \begin{lstlisting}  
-let ct = local_trustee().entrust(17);
-let ct2 = ct.clone();
-let thread = spawn(move || { 
- ct2.apply(|c| *c+=1);
-});
-ct.apply(|c| *c+=1);
-thread.join()?;
-assert!(ct.apply(|c| *c) == 19);
-\end{lstlisting}   
-\caption{Example using \trust{}.}
-    \label{f:minimal_threads}
-  \end{subfigure}
-  ~
-  \begin{subfigure}[t]{.5\textwidth}
-    \begin{lstlisting}  
-let cm = Arc::new(Mutex::new(17));
-let cm2 = cm.clone();
-let thread = spawn(move || { 
- *(cm2.lock()?) += 1;
-});
-*(cm.lock()?) += 1;
-thread.join()?;
-assert!(*cm.lock()? == 19);
-\end{lstlisting}
-    \caption{The same program using standard Rust primitives. }
-    \label{f:minimal_mutex}
-  \end{subfigure}
-  \caption{Minimal multi-threaded \trust{} example. Reference counting ensures that the property remains in memory until the last \trust{} referencing the property drops. }
-\end{figure*}
-
-In the example in \ref{f:minimal_threads} the counter is instead incremented by two different threads.
-Here, the {\tt clone()} call on {\tt ct} (line 2) clones the trust, but not the property; instead a reference count is incremented for the shared property, analogous to {\tt Arc::clone()}.
-  On line 3, a newly spawned thread takes ownership of {\tt ct2}, in the Rust sense of the word, then uses this to apply a closure (line 4).
-  When the thread exits, {\tt ct2} is dropped, decrementing the reference count, by means of a delegation request.
-  When the last trust of a property is dropped, the property is dropped as well. 
-
-For readers unfamiliar with Rust, \ref{f:minimal_mutex} illustrates the rough equivalent of \ref{f:minimal_threads}, but using conventional Rust primitives instead of \trust{}. Note the similarity in terms of legibility and verbosity. 
 
 \subsection{Trustee - a thread in charge of entrusted properties}
 
@@ -90,4 +49,4 @@ In this default setting, the synchronous {\tt apply()} function suspends the cur
 %In principle, much of this could be implemented with kernel threads, but in practice, a light-weight user threading implementation is both more efficient, and more practical as it allows us to run our own scheduler. 
 For the purpose of future discussion, we define the term {\it delegated context} to mean the context where a delegated closure executes. Generally speaking, closures execute as part of a trustee fiber, on the trustee's stack. 
 Importantly, blocking delegation calls are not permitted from within delegated context, and will result in a runtime assertion failure. 
-In Sectin \ref{s:nesting}, we describe multiple ways around this constraint.
+In Section \ref{s:nesting}, we describe multiple ways around this constraint.

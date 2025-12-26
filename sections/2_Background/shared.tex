@@ -10,12 +10,20 @@ core, this must be at minimum one cache miss per critical section, in sequential
 this cache miss is incurred by an atomic instruction, effectively stalling the CPU until the cache miss is 
 resolved (and in the case of a spinlock, until the lock is acquired).
 
-Two main solutions to this problem exist. First, where the data structure permits, fine-grained locking can be 
+Three main solutions to this problem exist. First, where the data structure permits, fine-grained locking can be 
 used to split the data structure into multiple independently locked objects, thus increase parallelism, reduce 
 lock contention and wait times. With the data structure split into sufficiently many objects, and {\it 
 accesses distributed uniformly}, a fine-grained locking approach tends to offer the best available performance. 
 
-The second solution is various forms of delegation, where one thread has custody of the object, and applies 
+The second solution is to use of nonblocking algorithms \cite{ffwd,fatourou_et_al:LIPIcs.DISC.2024.23,10.1145/3503221.3508440,osti_1557574,10.1145/3332466.3374540,ATTIYA2022181,10.1145/2370036.2145835,10.1145/2145816.2145835}. 
+Nonblocking algorithms handle mutual exclusion by ensuring progress through atomic operations, allowing threads to 
+proceed without waiting for others to release a lock. Compared to locks, they offer superior scalability under 
+contention, eliminate deadlock and priority inversion, and often provide better worst-case latency, which makes 
+them attractive for highly concurrent or real-time systems. However, they are not as widely used as locks because 
+they are significantly harder to design, reason about, and debug, with subtle correctness issues such as ABA 
+problems and complex memory-reclamation requirements.
+
+The third solution is various forms of delegation, where one thread has custody of the object, and applies 
 critical sections on behalf of other threads. Ideally, this minimizes the sequential cost of each critical 
 section without changing the data structure: there are no sequential cache misses, ideally no atomic 
 instructions, but of course the critical sections themselves still execute sequentially. 

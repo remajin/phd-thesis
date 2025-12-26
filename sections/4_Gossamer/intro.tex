@@ -23,7 +23,7 @@ application terminates. These aspects limit the size of the rack to a small numb
 node failures to be very rare.
 
 A key challenge that limits performance in a rack-wide system is the additional latency introduced by network 
-communication. \name{} mitigates this by combining RDMA with as fibers. RDMA offers sub-microsecond one-way 
+communication. \name{} mitigates this by combining RDMA with fibers. RDMA offers sub-microsecond one-way 
 latency, significantly faster than accessing persistent storage on a single machine, though still slower than 
 local memory and considerably slower than CPU cache accesses. Fibers help bridge this latency gap by allowing 
 applications to issue and manage a large 

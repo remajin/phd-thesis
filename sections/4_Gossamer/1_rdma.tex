@@ -8,6 +8,9 @@ results presented in this chapter are obtained by using RoCE.
 
 \subsection{RDMA API}
 \label{s:rdmaapi} 
+
+\input{figures/rdma}
+
 RDMA hosts communicate using queue pairs (QPs) that consist of a send queue and a receive queue, and are 
 maintained by the NIC. Applications post operations to these QPs by using functions called \textit{verbs}.
 Each queue can be associated with a completion queue, that can be polled to learn the status of posted 
@@ -15,7 +18,7 @@ operations. The completion queue can be shared between both parts of the QP.
 For remote access the remote machine first needs to register a memory region with the NIC. The NIC driver 
 pins this region in physical memory. The address and a key related to this region then needs to be exchanged 
 between the machines out of band (i.e. without using RDMA). After this exchange, the remote memory can be 
-accessed without involving either of remote operating system or CPU. This is called 
+accessed without involving either of remote operating system or CPU as shown in \ref{fig:rdma}. This is called 
 \textit{RDMA Memory Semantics}, and uses \textit{verbs} \textit{READ} and \textit{WRITE}.
 
 RDMA also provides \textit{Messaging Semantics} that use \textit{verbs} \textit{SEND} and \textit{RECV}. In 

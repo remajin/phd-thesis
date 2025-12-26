@@ -4,9 +4,9 @@ After single-threaded performance plateaued a decade or more ago, programmers ha
 making multi-threaded applications. This gives rise to the problem of synchronizing many threads as they access 
 the same data for correctness and making it efficient to not lose too much performance when compared to single 
 threaded applications. Today locks dominate this paradigm to the extent that there are hardware mechanisms in 
-place to make the use of locking easier and more efficient. Some examples include atomic exchange or atomic 
-increment instructions. However, a delegation based programming model can offer better performance than a locking 
-based one \cite{ffwd,ahmad2024trust,rcl}.
+place to make the use of locking easier and more efficient. Hardware Lock Elision \cite{10.1145/2517327.2442552} and 
+support for atomic increment instructions are examples of such mechanisms. However, a delegation based programming 
+model can offer better performance than a locking based one \cite{ffwd,ahmad2024trust,rcl}.
 
 We present \trust{} (pronounced {\it trust-tee}), a programming abstraction and runtime system which 
 provides safe, high-performance access to a shared object (or $property$) of type $T$. Briefly, a \trust{} 
@@ -20,6 +20,50 @@ Critically, access to the property is only available through the \trust{} API, w
 the Rust ownership model and borrow checker eliminates any potential for race conditions, given a correct 
 implementation of {\it apply}. Our implementation of \trust{} uses pure delegation. However, the design of 
 the API also permits lock-based implementations, as well as hybrids. 
+
+\begin{table*}[ht]
+  \begin{subtable}[t]{.54\textwidth}
+    \begin{lstlisting}  
+let ct = local_trustee().entrust(17);
+let ct2 = ct.clone();
+let thread = spawn(move || { 
+ ct2.apply(|c| *c+=1);
+});
+ct.apply(|c| *c+=1);
+thread.join()?;
+assert!(ct.apply(|c| *c) == 19);
+\end{lstlisting}   
+\caption{Example using \trust{}.}
+    \label{tab:minimal_threads}
+  \end{subtable}
+  ~
+  \begin{subtable}[t]{.5\textwidth}
+    \begin{lstlisting}  
+let cm = Arc::new(Mutex::new(17));
+let cm2 = cm.clone();
+let thread = spawn(move || { 
+ *(cm2.lock()?) += 1;
+});
+*(cm.lock()?) += 1;
+thread.join()?;
+assert!(*cm.lock()? == 19);
+\end{lstlisting}
+    \caption{The same program using standard Rust primitives. }
+    \label{tab:minimal_mutex}
+  \end{subtable}
+  \caption{Minimal multi-threaded \trust{} example. Reference counting ensures that the property remains in memory 
+  	until the last \trust{} referencing the property drops. }
+\end{table*}
+
+\ref{tab:minimal_threads} shows an example where a counter is incremented by two different threads.
+Here, the {\tt clone()} call on {\tt ct} (line 2) clones the trust, but not the property; instead a reference count 
+is incremented for the shared property, analogous to {\tt Arc::clone()}.
+On line 3, a newly spawned thread takes ownership of {\tt ct2}, in the Rust sense of the word, then uses this to 
+apply a closure (line 4).
+When the thread exits, {\tt ct2} is dropped, decrementing the reference count, by means of a delegation request.
+When the last trust of a property is dropped, the property is dropped as well. For readers unfamiliar with Rust, 
+\ref{tab:minimal_mutex} illustrates the rough equivalent of \ref{tab:minimal_threads}, but using conventional Rust 
+primitives instead of \trust{}. Note the similarity in terms of legibility and verbosity. 
 
 Beyond the API, \trust{} provides a runtime for scheduling request transmission and processing, as well as 
 lightweight user threads ($fibers$ below). This allows each OS thread to serve both as a Trustee, processing 

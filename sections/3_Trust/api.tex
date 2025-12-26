@@ -2,7 +2,13 @@
 \label{s:nesting}
 The \trust{} API supports a variety of ways to delegate work, some of which we elide due to space constraints. Below, we describe the core functions in detail.
 
+% \makeatletter
+% \show\@currenvir
+% \makeatother
+
 \subsection{\texttt{apply()}: synchronous delegation}
+\label{s:apply}
+\leavevmode\par
 \begin{lstlisting}[numbers=none]
 apply(c: FnOnce(&mut T)->U)->U
 \end{lstlisting}
@@ -15,16 +21,18 @@ Importantly, \texttt{apply()} is synchronous, suspending the current fiber until
 Often, the best performance with {\tt apply()} is achieved when running multiple application fibers per thread. 
 Then, while one fiber is waiting for its response, another may productively use the CPU.
 
-\pagebreak
+% \pagebreak
 
 \subsection{\texttt{apply\_then()}: non-blocking delegation}
+\label{s:applythen}
+\leavevmode\par
 \begin{lstlisting}[numbers=none]
   apply_then(c: FnOnce(&mut T)->U, 
           then: FnOnce(U))
 \end{lstlisting}
   
 
-\begin{figure*}[ht]
+\begin{table*}[ht]
   \centering
     \begin{lstlisting}[
 		basicstyle=\small, %or \small or \footnotesize etc.
@@ -33,15 +41,15 @@ let ct = trustee.entrust(17);           // create trust for shared counter set t
 ct.apply_then(|c| { *c+=1; *c },         // increment counter and return its value
               |val| assert!(val==18));  // check return value once received
 \end{lstlisting}
-\caption{Asynchronous version of the example in \ref{f:minimal}.
+\caption{Asynchronous version of the example in \ref{tab:minimal}.
 The second closure runs on the client, once the result of the first closure is received from the trustee. }
-\label{f:minimal_async}
-\end{figure*}
+\label{tab:minimal_async}
+\end{table*}
 
 Frequently, asynchronous (or non-blocking) application logic can allow the programmer to express additional concurrency either without running multiple fibers, or in combination with multiple fibers. 
 Here, {\tt apply\_then()} returns to the caller without blocking, and does not produce a return value.
 Instead, the second closure, {\tt then}, is called with the return value from the delegated closure, once it has been received. 
-\ref{f:minimal_async} demonstrates the use of {\tt apply\_then()} following the pattern of \ref{f:minimal}.
+\ref{tab:minimal_async} demonstrates the use of {\tt apply\_then()} following the pattern of \ref{tab:minimal}.
 
 The {\tt then}-closure is a very powerful abstraction, as it too is able to capture variables from the local environment, 
 allowing it to perform tasks like adding the return value (once available) to a vector accessible to the caller. 
@@ -52,6 +60,7 @@ the programmer to appropriately manage object lifetime either through scoping or
 Importantly, as {\tt apply\_then()} does not suspend the caller, it may freely be called from within delegated context. 
 
 \subsection{\texttt{launch()}: apply in a trustee-side fiber}
+\leavevmode\par
 \begin{lstlisting}[numbers=none]
   launch(c: FnOnce(&mut T)->U)->U
   launch_then(c: FnOnce(&mut T)->U, 
@@ -59,8 +68,10 @@ Importantly, as {\tt apply\_then()} does not suspend the caller, it may freely b
 
 \end{lstlisting}
 
+\input{figures/nested}
+
 The most significant constraint imposed by \trust{} on the closure passed to {\tt apply()} and {\tt apply\_then()} is that the closure itself may not block. 
-Blocking in delegated context means putting the trustee itself to sleep, preventing it from serving other requests, potentially resulting in deadlock.
+Blocking in delegated context means putting the trustee itself to sleep, preventing it from serving other requests, potentially resulting in deadlock as shown in \ref{fig:nested}.
 In previous work \cite{rcl}, this problem was addressed by maintaining multiple server OS threads, and automatically switching to the next server when one server thread blocks. This avoids blocking the trustee, but imposes high overhead, resulting in considerably lower performance, as demonstrated in \cite{ffwd}.
 
 In \trust{}, blocking in delegated context is prohibited: attempted suspensions in delegated context are detected at runtime, resulting in an assertion failure. Closures may still use {\tt apply\_then()}, but not the blocking {\tt apply()}. 
@@ -71,7 +82,7 @@ Specifically, it affects modularity, as a library function that blocks internall
 
 \begin{figure*}
   \centering\
-  \includegraphics[height=1.8in]{figures/launch}
+  \includegraphics[height=2in]{figures/launch}
   \caption{Operation of {\tt launch()} vs {\tt apply()}. {\tt launch()} supports blocking calls, including nested delegation calls in the
   delegated closure, but incurs a higher minimum overhead. Solid arrows indicate requests, dotted arrows are delegation responses.}
   \label{f:launch}

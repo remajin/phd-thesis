@@ -22,12 +22,12 @@
 \usepackage{pifont}
 \usepackage{subcaption}
 \usepackage{listings-rust}
-\usepackage{hyperref}
 \usepackage{pgf}
 \usepackage{fancyvrb}
 \usepackage{pdfpages}
 \usepackage{setspace}
 \usepackage{geometry}
+\usepackage{hyperref}
 \geometry{margin=1in, top=1.3in}
 
 % \newglossarystyle{clong}{%
@@ -45,6 +45,9 @@
 
 \makesavenoteenv{tabular}
 \makesavenoteenv{table}
+
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
 
 % \input{sections/other/__abbrs}
 \def\new@fontshape#1#2#3#4#5{\expandafter
@@ -127,6 +130,29 @@
   }%
 }
 
+\makeatother
+
+
+\makeatletter
+\renewcommand{\@seccntformat}[1]{%
+  \csname the#1\endcsname\quad
+}
+
+\renewcommand\subsection{%
+  \@startsection{subsection}{3}%
+    {\z@}%
+    {1.25ex \@plus .2ex \@minus .2ex}%
+    {0.75ex \@plus .2ex}%
+    {\normalfont\bfseries}%
+}
+
+\renewcommand\subsubsection{%
+  \@startsection{subsubsection}{3}%
+    {\z@}%
+    {1.25ex \@plus .2ex \@minus .2ex}%
+    {0.75ex \@plus .2ex}%
+    {\normalfont\bfseries}%
+}
 \makeatother
 
 
