@@ -30,3 +30,4 @@ thesis: plots
 
 epub:
 	latexmlc -dest=thesis.epub thesis.tex
+	ebook-meta thesis.epub --authors "Noaman Ahmad"
