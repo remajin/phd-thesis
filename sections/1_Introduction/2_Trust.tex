@@ -55,14 +55,14 @@ assert!(*cm.lock()? == 19);
   	until the last \trust{} referencing the property drops. }
 \end{table*}
 
-\ref{tab:minimal_threads} shows an example where a counter is incremented by two different threads.
+Table~\ref{tab:minimal_threads} shows an example where a counter is incremented by two different threads.
 Here, the {\tt clone()} call on {\tt ct} (line 2) clones the trust, but not the property; instead a reference count 
 is incremented for the shared property, analogous to {\tt Arc::clone()}.
 On line 3, a newly spawned thread takes ownership of {\tt ct2}, in the Rust sense of the word, then uses this to 
 apply a closure (line 4).
 When the thread exits, {\tt ct2} is dropped, decrementing the reference count, by means of a delegation request.
 When the last trust of a property is dropped, the property is dropped as well. For readers unfamiliar with Rust, 
-\ref{tab:minimal_mutex} illustrates the rough equivalent of \ref{tab:minimal_threads}, but using conventional Rust 
+Table~\ref{tab:minimal_mutex} illustrates the rough equivalent of Table~\ref{tab:minimal_threads}, but using conventional Rust 
 primitives instead of \trust{}. Note the similarity in terms of legibility and verbosity. 
 
 Beyond the API, \trust{} provides a runtime for scheduling request transmission and processing, as well as 

@@ -1,0 +1,21 @@
+\begin{figure*}[ht]
+
+\begin{subfigure}[t]{0.5\textwidth}
+% \centering
+\includegraphics[width=1\textwidth]{figures/qp1.pdf}
+  \caption{An RDMA connection between each pair of threads means many connections per machine, resulting in lost 
+  performance.}
+  \label{fig:qp1}
+\end{subfigure}
+~
+\begin{subfigure}[t]{0.5\textwidth}
+% \centering
+\includegraphics[width=1\textwidth]{figures/qp2.pdf}
+  \caption{Having client threads use the same connections for all trustees on a remote machine avoids performance 
+  loss.}
+  \label{fig:qp2}
+\end{subfigure}
+
+\caption{Quadratic vs Reduced connections between threads.}
+\label{fig:qp_scaling}
+\end{figure*}

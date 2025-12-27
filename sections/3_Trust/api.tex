@@ -41,7 +41,7 @@ let ct = trustee.entrust(17);           // create trust for shared counter set t
 ct.apply_then(|c| { *c+=1; *c },         // increment counter and return its value
               |val| assert!(val==18));  // check return value once received
 \end{lstlisting}
-\caption{Asynchronous version of the example in \ref{tab:minimal}.
+\caption{Asynchronous version of the example in Table~\ref{tab:minimal}.
 The second closure runs on the client, once the result of the first closure is received from the trustee. }
 \label{tab:minimal_async}
 \end{table*}
@@ -49,7 +49,7 @@ The second closure runs on the client, once the result of the first closure is r
 Frequently, asynchronous (or non-blocking) application logic can allow the programmer to express additional concurrency either without running multiple fibers, or in combination with multiple fibers. 
 Here, {\tt apply\_then()} returns to the caller without blocking, and does not produce a return value.
 Instead, the second closure, {\tt then}, is called with the return value from the delegated closure, once it has been received. 
-\ref{tab:minimal_async} demonstrates the use of {\tt apply\_then()} following the pattern of \ref{tab:minimal}.
+Table~\ref{tab:minimal_async} demonstrates the use of {\tt apply\_then()} following the pattern of Table~\ref{tab:minimal}.
 
 The {\tt then}-closure is a very powerful abstraction, as it too is able to capture variables from the local environment, 
 allowing it to perform tasks like adding the return value (once available) to a vector accessible to the caller. 
@@ -71,7 +71,7 @@ Importantly, as {\tt apply\_then()} does not suspend the caller, it may freely b
 \input{figures/nested}
 
 The most significant constraint imposed by \trust{} on the closure passed to {\tt apply()} and {\tt apply\_then()} is that the closure itself may not block. 
-Blocking in delegated context means putting the trustee itself to sleep, preventing it from serving other requests, potentially resulting in deadlock as shown in \ref{fig:nested}.
+Blocking in delegated context means putting the trustee itself to sleep, preventing it from serving other requests, potentially resulting in deadlock as shown in Figure~\ref{fig:nested}.
 In previous work \cite{rcl}, this problem was addressed by maintaining multiple server OS threads, and automatically switching to the next server when one server thread blocks. This avoids blocking the trustee, but imposes high overhead, resulting in considerably lower performance, as demonstrated in \cite{ffwd}.
 
 In \trust{}, blocking in delegated context is prohibited: attempted suspensions in delegated context are detected at runtime, resulting in an assertion failure. Closures may still use {\tt apply\_then()}, but not the blocking {\tt apply()}. 
@@ -89,7 +89,7 @@ Specifically, it affects modularity, as a library function that blocks internall
 \end{figure*}
 
 To address this, without sacrificing the performance of the more common case, we provide a convenience function: {\tt launch()}, which offers all the same functionality as {\tt apply()}, but without the blocking restriction.
-\ref{f:launch} describes {\tt launch()} from an implementation standpoint. {\tt launch()} creates a temporary fiber on the trustee's thread, which runs the closure. If this fiber is suspended, the client is notified, and the trustee continues to serve the next request. 
+Figure~\ref{f:launch} describes {\tt launch()} from an implementation standpoint. {\tt launch()} creates a temporary fiber on the trustee's thread, which runs the closure. If this fiber is suspended, the client is notified, and the trustee continues to serve the next request. 
 Once the temporary fiber resumes and completes execution of the closure, it then delivers the return value and resumes the client fiber via a second delegation call. Thus, if a delegated closure fails the runtime check for blocking calls, the developer can fix this by replacing the {\tt apply()} call, with a {\tt launch()} call. 
 
 % The Rust type system does not let us statically detect whether a closure needs to be delegated with {\tt launch()}. Detecting it at runtime is trivial. 
@@ -108,13 +108,13 @@ To avoid this risk, {\tt launch()} is implemented only for {\tt Trust<Latch<T>{>
 \label{s:noref}
 
 Using the Rust type system, we ensure that delegated closures in \trust{} cannot capture values that contain any references or pointers. 
-This is discussed in more detail in Section \ref{sg:noref}.
+This is discussed in more detail in Section Figure~\ref{sg:noref}.
 
 In principle, this is far stricter than what is necessary: the existing and pervasive Rust traits {\tt Send} and {\tt Sync} already describe
 the types that may be safely moved and shared between threads, and this continues to hold within \trust{}. 
 
 That said, safety does not guarantee performance. A common performance pitfall when writing delegation-based software is 
-memory stalls on the trustee, which affects trustees disproportionately due to the polling nature of the delegation channel (see Section \ref{s:delegating}). Frequent cache misses and use of atomic instructions in delegated closures can substantially degrade trustee throughput vs. running closures with good memory locality. 
+memory stalls on the trustee, which affects trustees disproportionately due to the polling nature of the delegation channel (see Section~\ref{s:delegating}). Frequent cache misses and use of atomic instructions in delegated closures can substantially degrade trustee throughput vs. running closures with good memory locality. 
 
 Generally speaking, cache line contention and use of atomic instructions are a natural result of sharing memory between threads. By prohibiting the capture of references and pointers, \trust{} makes accidental shared memory patterns of programming much less likely in delegated code, and encourage cache friendly pass-by-value practices. 
 
@@ -124,7 +124,7 @@ Rust closures very efficiently and conveniently capture their environment, which
 However, only types with a size known at compile time may be captured in a Rust closure (or even allocated on the stack). 
 
 In conventional Rust code, variable size types, including strings, are stored on the heap, and referenced by a {\tt Box$<$T$>$} smart pointer. 
-For the reasons described above (see Section \ref{s:noref}), we do not allow {\tt Box$<$T$>$} or other types that include pointers or references to be captured in a closure:
+For the reasons described above (see Section~\ref{s:noref}), we do not allow {\tt Box$<$T$>$} or other types that include pointers or references to be captured in a closure:
 only pure values may pass through the delegation channel. 
 
 As a result, variable size objects and other heap-allocated objects must be passed as explicit arguments rather than captured, so that they may be serialized before transmission over the delegation channel. 

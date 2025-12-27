@@ -1,0 +1,11 @@
+\begin{table}
+\begin{lstlisting}
+pub auto trait NoRef {}
+impl<T> !NoRef for &T {}
+impl<T> !NoRef for *T {}
+fn apply<F:Closure+NoRef>(closure: F);
+\end{lstlisting}
+\caption{Auto traits combined with negative trait implementations allow functions to restrict closures that capture 
+pointers.}
+\label{tab:auto}
+\end{table}

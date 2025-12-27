@@ -36,7 +36,7 @@ between cores as new threads take on the {\it combiner} role. Most recently, TCL
 fully transparent combining-based replacement for locks, by capturing and restoring register contents, and 
 automatically pre-fetching parts of the stack. TClocks claims substantial benefits for extremely congested 
 locks, and the backward compatibility is of course quite attractive. However, a cursory evaluation in 
-Section \ref{s:eval} reveals that TCLocks substantially underperform regular locks beyond extremely high contention 
+Section~\ref{s:eval} reveals that TCLocks substantially underperform regular locks beyond extremely high contention 
 settings, and never approaches \trust{} performance.
 
 %With the exception of {\it combining}, a form of delegation with temporary custody,

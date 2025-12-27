@@ -21,7 +21,7 @@ Below, we first introduce the basic \trust{} programming model, as well as the k
 A \trust{} is a thread-safe reference counting smart-pointer, similar to Rust's {\it Arc$<$T$>$}. 
 To create a \trust{}, we clone an existing \trust{} or $entrust$ a new object, or $property$ of type $T$, that is meant to be shared between threads. 
 Once entrusted, the property can only be accessed by {\it applying} closures to it, using a trust.
-\ref{tab:minimal} illustrates this through a minimal Rust example.
+Table~\ref{tab:minimal} illustrates this through a minimal Rust example.
 Line 1 entrusts an integer, initialized to 17, to the local trustee - the trustee fiber running on the current kernel thread. 
 Line 2 applies an anonymous closure to the counter, via the trust.
 The closure expected by {\tt apply} takes a mutable reference to the property as argument, allowing it unrestricted access to the property, in this case, our integer. 
@@ -49,4 +49,4 @@ In this default setting, the synchronous {\tt apply()} function suspends the cur
 %In principle, much of this could be implemented with kernel threads, but in practice, a light-weight user threading implementation is both more efficient, and more practical as it allows us to run our own scheduler. 
 For the purpose of future discussion, we define the term {\it delegated context} to mean the context where a delegated closure executes. Generally speaking, closures execute as part of a trustee fiber, on the trustee's stack. 
 Importantly, blocking delegation calls are not permitted from within delegated context, and will result in a runtime assertion failure. 
-In Section \ref{s:nesting}, we describe multiple ways around this constraint.
+In Section~\ref{s:nesting}, we describe multiple ways around this constraint.

@@ -3,7 +3,7 @@
 
 \name{} allows developers to write rack-wide applications just like single machine applications. Programmers will 
 use the delegation framework to write applications that are distributed by \name{} with very few changes to the 
-code. \ref{fig:design} shows a high level view of what a rack with multiple \name{} applications looks like. 
+code. Figure~\ref{fig:design} shows a high level view of what a rack with multiple \name{} applications looks like. 
 Developers use the controller machine to interact with the rack and launch applications. Here controller machine 
 is just a normal machine running \name{} processes like any other machine in the rack, the only significance is 
 that this is the machine that users log into for terminal access. Each machine in the rack has a daemon running 
@@ -16,7 +16,7 @@ interesting.
 \subsection{Gossamer Daemon}
 \input{figures/process}
 
-As shown in \ref{fig:design}, each machine has \name{} daemon running. These daemons connect with each other to 
+As shown in Figure~\ref{fig:design}, each machine has \name{} daemon running. These daemons connect with each other to 
 discover the rack size and store metadata like gossamer-id, machine-ip etc. The daemon is responsible for 
 managing any \name{} processes running on the rack at any time. To launch a \name{} application, users need to 
 run the application binary on the controller machine only. The application will contact the local daemon and tell 
@@ -28,12 +28,12 @@ single thread crashes.
 
 \subsection{Gossamer Process}
 To launch a \name{} process, the user logs into the controller machine and starts the application there. Since 
-parts of \name{} rely on similar memory layout (as discussed in Section \ref{sg:slots}), each machine in the rack 
+parts of \name{} rely on similar memory layout (as discussed in Section~\ref{sg:slots}), each machine in the rack 
 should be populated with the same binary ahead of time. The application needs to have its \textit{main} 
 function call a helper function from the \name{} library and pass a function that would act as the real 
 \textit{main} function along with how many threads the application needs to use across the whole rack. This 
 function will be referred to as \textit{gsm\_main} for the rest of the chapter. The process consists of many 
-fibers per system thread for concurrent operation as shown in \ref{fig:process}. Fibers are lightweight, 
+fibers per system thread for concurrent operation as shown in Figure~\ref{fig:process}. Fibers are lightweight, 
 user space threads that can spawn on any system thread that is part of the \name{} process, and on any machine 
 in the rack. Fibers that need to access shared data make delegation requests consisting of closures that modify 
 the data as needed. From the point of view of the operating system, a single instance of \name{} process behaves 
@@ -44,11 +44,11 @@ like any other normal process. The main difference is that instead of using syst
 \subsection{Trustee, Trust and Property}
 \input{figures/trustntrustee}
 
-\name{} builds on the Trust/Trustee concept from \cite{ahmad2024trust} (Chapter \ref{trust} in this dissertation), 
+\name{} builds on the Trust/Trustee concept from \cite{ahmad2024trust} (Chapter~\ref{trust} in this dissertation), 
 which we introduce briefly here. A \textit{Trustee} is a worker fiber that processes delegation requests and sends 
 back the response. The application can entrust some data to a trustee if the delegated work needs access to it and 
 receive a \textit{Trust} that holds relevant metadata. This entrusted data is referred to as \textit{Property}. 
-The Trust can be used to delegate any work that needs access to this property. \ref{fig:trustntrustee} shows the 
+The Trust can be used to delegate any work that needs access to this property. Figure~\ref{fig:trustntrustee} shows the 
 relationship between Trust, Trustee and Property. A Trust can be cloned and shared with other fibers so that 
 they can also start delegating work that needs access to same property. Multiple properties can be entrusted 
 to a single trustee at the same time. Trustees can act as remote or local trustees based on where the fiber 
@@ -98,15 +98,15 @@ a trait for every data type, be it an existing type or user defined. A negative 
 exclude a data type from the auto implementation. \name{} defines an auto trait called \textit{NoRef}. Then 
 all the types that contain a reference or raw pointer are given negative implementation. The function 
 \textit{apply}, that is used to send delegation messages as described in previous section, requires all the 
-closures to comply with the NoRef trait as shown in \ref{fig:trustntrustee}. This is implemented using the code 
-shown in \ref{tab:auto}. This however limits severely what 
+closures to comply with the NoRef trait as shown in Figure~\ref{fig:trustntrustee}. This is implemented using the code 
+shown in Table~\ref{tab:auto}. This however limits severely what 
 type of data can be captured by any delegated closure as many frequently used types like strings and vectors 
 contain pointers internally. To get around that \name{} provides a way to send any data type that can be 
-serialized along with the closure as an extra parameter to the delegated closure. \ref{tab:noref} shows a code 
+serialized along with the closure as an extra parameter to the delegated closure. Table~\ref{tab:noref} shows a code 
 example where a Box, a Rust smart pointer, is serialized instead of being captured. If the programmer makes a 
 mistake and tries to use a closure that has captured a reference for delegation, a custom error message at 
 compile time will inform them what the issue is and direct them to use the serialization method instead. An example 
-of this message is shown in \ref{fig:error}.
+of this message is shown in Figure~\ref{fig:error}.
 
 \subsection{Request size and TCP fallback}
 \label{s:tcp_fallback}
@@ -120,7 +120,7 @@ Assuming 1 KB request slot, one batch can have at most 25 requests. While this a
 requests it also places a hard limit on how much data a request can capture i.e. the size of the request slot. 
 To work around this limit and support larger requests, \name{} uses TCP to send any captured data larger than 
 that separately, while the request header goes in the request slot as normal. This degrades the performance 
-severely as TCP is much slower than RDMA. We use TCP here instead of RDMA because, as mentioned in Section \ref{s:rdmaapi}, 
+severely as TCP is much slower than RDMA. We use TCP here instead of RDMA because, as mentioned in Section~\ref{s:rdmaapi}, 
 RDMA needs the memory used to be pre-registered with the NIC, placing an upper limit on how much data can be sent 
 using RDMA at once, i.e. the size of pre-registered buffer. Since there would be an upper limit anyway and larger 
 requests are not the focus for \name{}, we decided to opt for the simpler design in place at the moment.
@@ -131,7 +131,7 @@ requests are not the focus for \name{}, we decided to opt for the simpler design
 \input{figures/req_slot}
 
 As discussed in the previous section, the number of requests sent in a batch depends on the size of the requests 
-plus the size of any headers sent with the request. Section \ref{st:slots} describes the format of request and 
+plus the size of any headers sent with the request. Section~\ref{st:slots} describes the format of request and 
 response slots used for single machine delegation channel. Here we describe further optimizations made to request
 slots to minimize per request metadata to reduce wasted network bandwidth. The two-slot optimization of single 
 machine delegation channel is also disabled for remote delegation, as the cost of doing two separate RDMA write 
@@ -171,9 +171,9 @@ when submitting a request. If the response size cannot be determined statically,
 contain its size. While a known response size can be used to limit the number of requests in a request slot just 
 like the size of requests, unknown size responses can lead to scenarios where not all of the responses for a 
 request slot fit in a single response slot. In such cases the trustee will send anything that doesn't fit in the 
-response slot to the client using TCP in a similar fashion as discussed in Section \ref{s:tcp_fallback}. In addition, if 
+response slot to the client using TCP in a similar fashion as discussed in Section~\ref{s:tcp_fallback}. In addition, if 
 the response size is zero and statically known, then nothing is sent in the slot for that particular response. 
-\ref{fig:req_slot} shows the format for both the request and response slots.\\
+Figure~\ref{fig:req_slot} shows the format for both the request and response slots.\\
 
 In addition to the request/response, the slots also contain some metadata. They both contain a ready bit and
 an offset, with the request slot containing a few more things. The ready bit is there to let the other side 
@@ -187,7 +187,7 @@ slot and in a known place, requests and responses are aligned to the end of the 
 empty. The offset informs the remote side where the actual data starts in the slot. The request slot also 
 contains the request count and the vtable cache as discussed earlier. The last thing in request slot metadata
 is a bit that indicates if there is a single large request in the slot or multiple small ones. As discussed 
-in Section \ref{s:tcp_fallback}, if the request will not fit in the slot it is sent using TCP and only the relevant 
+in Section~\ref{s:tcp_fallback}, if the request will not fit in the slot it is sent using TCP and only the relevant 
 pointers go in the slot. The decision to only send a single request if it is large is to simplify the design
 since large requests are not the focus of this work.
 
@@ -204,7 +204,7 @@ continuously polls this piece of memory to determine the arrival of new requests
 We can think of that as a \textit{square} in memory with $num\_threads$ side length. When we move on to a 
 distributed setting, we can extend this \textit{square} to have $num\_threads \times num\_machines$ side length.
 The whole of the bigger \textit{square} does not need to be allocated on each machine as that would waste memory.
-Instead, parts of it are allocated on each machine. \ref{fig:req_mem_layout} shows an example layout for a system 
+Instead, parts of it are allocated on each machine. Figure~\ref{fig:req_mem_layout} shows an example layout for a system 
 with three machines that have three system threads each for a total of nine threads. In the figure, each cell 
 represents a request slot going from a source thread to a destination thread as labeled and horizontal
 rows represent memory that is physically contiguous while different colors divide the \textit{square} based on which 
@@ -218,7 +218,7 @@ From the perspective of the whole rack as a single system, each row of request s
 \textit{square} maps to a column in the trustee memory \textit{square}. For example a request slot going from 
 thread 1 (thread 1, machine 1) to thread 7 (thread 1 machine 3) is prepared in memory represented by the cell in
 row one and column seven in client memory \textit{square} and then written to the cell in row seven and column one
-in trustee memory \textit{square} and so on. \ref{fig:req_mem_layout} also shows a few additional examples. There 
+in trustee memory \textit{square} and so on. Figure~\ref{fig:req_mem_layout} also shows a few additional examples. There 
 is a similar system in place for response slots as well.
 
 \subsection{Scaling impact of increasing number of Queue Pairs}
@@ -226,7 +226,7 @@ is a similar system in place for response slots as well.
 \input{figures/qp_scaling}
 \input{figures/qp_scaling_6m_r6615}
 
-As discussed in Section \ref{s:rdmaapi}, RDMA communications happen via a queue pair (QP). Theoretically each machine
+As discussed in Section~\ref{s:rdmaapi}, RDMA communications happen via a queue pair (QP). Theoretically each machine
 pair only needs to have a single QP resulting in $num\_machines^2$ QPs. However, this means sharing a QP among 
 many threads. The QPs use a spin lock internally to make sure QPs can be shared safely, but that results in threads
 having to wait for each other before they can send requests to a trustee. A better but naive design might be
@@ -236,8 +236,8 @@ limitation. The NIC caches any recently used QPs, along with page mappings for a
 in its SRAM. Increasing the number of QPs results in NIC running out of SRAM, which in turn results in cache 
 misses. We use a middle of the road system where instead of each thread making a separate QP for every other 
 thread, it makes a QP for each machine in the rack. This reduces the total number of QPs in the system to 
-$num\_machines^2 \times num\_threads\_per\_machine$. \ref{fig:qp_scaling} shows the reduction in the number of 
-connections gained by using this design. \ref{fig:qp_scaling_6m} shows an experiment that demonstrates 
+$num\_machines^2 \times num\_threads\_per\_machine$. Figure~\ref{fig:qp_scaling} shows the reduction in the number of 
+connections gained by using this design. Figure~\ref{fig:qp_scaling_6m} shows an experiment that demonstrates 
 the performance gained by reducing the number of QPs in the system. This experiment was performed with 6 machines, 
 all connected to switch with 100Gb/s ethernet links. Each thread writes 256 bytes in a randomly chosen remote 
 thread's memory twenty million times. As the number of threads increases, thereby increasing the number of QPs, 

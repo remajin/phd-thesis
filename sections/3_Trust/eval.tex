@@ -26,7 +26,7 @@ In this section, each data point is the result of a single run.
 
 Below, we primarily evaluate on a two-socket Intel Xeon CPU Max 9462, of the Sapphire Rapids architecture. This machine has a total of 64 cores, 128 hyperthreads, and 384 GB of RAM. Unless otherwise noted, we use 128 OS threads. In testing, several older x86-64 ISA processors have shown similar trends -- these results are not shown here.
  For locking solutions, we use standard Rust {\tt Mutex<T>} and the spinlock variant provided by the Rust {\tt spin-rs-0.9.8} crate, as well as MCSLock$<$T$>$ provided by the Rust {\tt synctools-0.3.2} crate. For {\tt Trust<T>}, we show results for blocking delegation (Trust) as well as nonblocking delegation (Async).
-In \ref{f:fna_variables}, we also include TCLocks, a recent combining approach offering a transparent replacement for standard locks, via the Litl lock wrapper \cite{litl} for {\tt pthread\_mutex}. 
+In Figure~\ref{f:fna_variables}, we also include TCLocks, a recent combining approach offering a transparent replacement for standard locks, via the Litl lock wrapper \cite{litl} for {\tt pthread\_mutex}. 
 To be able to evaluate this lock, we wrote a separate C microbenchmark, matching the Rust version. In the interest of an apples-to-apples comparison, we first verified that the reported performance with stock {\tt pthread\_mutex} on the C microbenchmark matched the Rust {\tt Mutex<T>} performance in our Rust microbenchmark.
 
 Below, the {\tt Trust} results may be seen to represent any application with ample concurrency available in the form of conventional synchronous threads. {\tt Async} represents applications where a single thread may issue multiple simultaneously outstanding requests, e.g. a key-value store or web application server. 
@@ -36,7 +36,7 @@ We further report results with both letting all cores serve as both clients and 
 \subsubsection{Uniform Access Pattern}
 
 
-\ref{f:fna_variables} illustrates the performance of several solutions on the uniform distribution version of this benchmark. 
+Figure~\ref{f:fna_variables} illustrates the performance of several solutions on the uniform distribution version of this benchmark. 
 For a very small number of objects, no data points are reported for some of the lock types - this is because the experiment took far too long to run due to severe congestion collapse. 
 
 {\tt Trust<T>} substantially outperforms locking under congested conditions.
@@ -72,7 +72,7 @@ Moreover, we struggled to apply TCLocks to memcached (which consistently crashed
 Zipf's law \cite{zipf1949} elegantly captures the distribution of words in written language. In brief, it says that the probability of word occurrence $p_w$ is distributed according to the rank $r_w$ of the word, thus: $p_w \propto {r_w}^{-\alpha}$, where $\alpha \sim 1$.
 Similar relationships, often called ``power laws'', are common in areas beyond written language \cite{zipf1949,boltzmann,Ojovan_2006,DODDS20019,Venture}, sometimes with a greater value for $\alpha$. The higher the $\alpha$, the more pronounced is the effect of popular keys, resulting in congestion. 
 
-\ref{f:fna_variables_zipf} shows the results of our fetch-and-add experiment, but with objects selected according to a Zipfian distribution ($\alpha=1$) instead of the uniform distribution above, representing a common skewed access distribution. 
+Figure~\ref{f:fna_variables_zipf} shows the results of our fetch-and-add experiment, but with objects selected according to a Zipfian distribution ($\alpha=1$) instead of the uniform distribution above, representing a common skewed access distribution. 
 
 With this skewed access pattern, \trust{} overwhelmingly outperforms locking across the range of table sizes. 
 This is explained by the relatively low throughput of a single lock. 
@@ -176,7 +176,7 @@ The key size is 8 bytes and the value size is 16 bytes in the experiments.
 Prior to each run, we pre-fill the table, and report results from an average of 10 runs.
 %each lasting approximately \je{?} seconds.
 
-\ref{f:kvstore_tput} and \ref{f:kvstore_tput_zipf} show the results from this small key-value store application,
+Figure~\ref{f:kvstore_tput} and Figure~\ref{f:kvstore_tput_zipf} show the results from this small key-value store application,
 for a varying total number of keys with 5\% write requests and 95\% read request,
 and Uniform as well as Zipfian \cite{zipf1949} access distributions.
 For Zipfian access, we use the conventional $\alpha=1$.
@@ -204,11 +204,11 @@ Automatically adjusting the number of cores dedicated to trustee work at runtime
 
 In principle, readers-writer locks have a major advantage over \trust{} in that they allow concurrent reader access,
 while \trust{} exclusively allows trustees to access the underlying data structure.
-To better understand this dynamic, \ref{f:kvstore_tput_writes} and \ref{f:kvstore_tput_writes_zipf}
+To better understand this dynamic, Figure~\ref{f:kvstore_tput_writes} and Figure~\ref{f:kvstore_tput_writes_zipf}
 show key-value store throughput over a varying percentage of writes.
 
 Here, we use 1,000 keys for the Uniform access distribution, and 10,000,000 keys for Zipfian access distribution.
-We note that these are table sizes where lock-based approaches hold an advantage in \ref{f:kvstore_tput} and \ref{f:kvstore_tput_zipf}. 
+We note that these are table sizes where lock-based approaches hold an advantage in Figure~\ref{f:kvstore_tput} and Figure~\ref{f:kvstore_tput_zipf}. 
 For Uniform access patterns, where there is limited contention given the table size of 1,000 keys, the
 impact of the write percentage is muted. For lock-based designs, the performance does drop somewhat, but remains
 at a high level even with 100\% writes. 
@@ -242,7 +242,7 @@ A complicating factor in this asynchronous approach results from {\tt memcached}
 For any one trustee-client pair, even asynchronous delegation requests are executed in-order, and responses arrive in-order.
 However, this is not guaranteed for requests issued to different trustees. 
 Consequently, the memcached socket worker thread must order the responses before they are transmitted over the network socket to the remote client.
-By contrast, our delegation-native key-value store in Section \ref{s:kvstore} sends responses out of order over the socket, and instead includes a request ID in the response.
+By contrast, our delegation-native key-value store in Section~\ref{s:kvstore} sends responses out of order over the socket, and instead includes a request ID in the response.
 
 Another difference worth mentioning is that we don't allow delegation clients (in this case, the memcached socket worker thread) to access delegated data structures at all. 
 This means that instead of a pointer to a value in the table, clients receive a copy of the value. 
@@ -288,7 +288,7 @@ After this, we start over with a new, empty {\tt memcached} instance. Each data 
 By default, this means 28 {\tt memcached} threads pinned to hardware threads 0--27. Running with 56 hardware threads did not yield any further performance improvement.
 On the memtier side, we configure 28 threads, with four clients per thread, and pipelining set to 48.
 
-\ref{f:memcached_tput} and \ref{f:memcached_tput_zipf} illustrates the throughput of {\tt memcached} as we vary the number of keys in the table. 
+Figure~\ref{f:memcached_tput} and Figure~\ref{f:memcached_tput_zipf} illustrates the throughput of {\tt memcached} as we vary the number of keys in the table. 
 While the absolute numbers are significantly lower than in the microbenchmarks and the key-value store, the overall picture from {\tt memcached} corresponds well with previous experiments. 
 
 Using \trust{} results in performance improvements of more than 5$\times$ when accessing popular objects, 

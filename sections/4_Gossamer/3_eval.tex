@@ -18,7 +18,7 @@ acts as both client and server. Clients choose a server at random form a uniform
 containing 32 bytes of data. Each client sends ten million asynchronous echo requests. We compare against eRPC 
 \cite{225980} and an MPI library used by and developed for graph500 reference benchmark \cite{g500}.
 
-\ref{fig:echo_tput} shows the results of our experiment. Here we use 16 threads per machine as the eRPC benchmark
+Figure~\ref{fig:echo_tput} shows the results of our experiment. Here we use 16 threads per machine as the eRPC benchmark
 only supports up to two NUMA nodes. Each successive data point has one more machine than the previous one, resulting 
 in an increment of 16 threads. eRPC starts with 2.9 MOPs per thread and maintains that as more threads are
 added. This is in line with their reported performance in a github issue \cite{erpc_issue} for two machines 
@@ -30,12 +30,12 @@ number of machines increases.
 
 \input{figures/echo_tput_reqsize_r6615}
 
-\ref{fig:echo_reqsize} shows the performance of all three systems across a range of request sizes. The MPI system 
+Figure~\ref{fig:echo_reqsize} shows the performance of all three systems across a range of request sizes. The MPI system 
 performs better than both \name{} and eRPC due to smaller request headers, however as the request size 
 increases, this advantage becomes negligible and the other systems overtake it. All three systems experience a 
 drop in the number of requests served as the request size increases, however \name{} experiences a particularly 
 steep drop as it cross the 1KB threshold. This is explained by the TCP fallback for large requests as discussed 
-in Section \ref{s:tcp_fallback}. 
+in Section~\ref{s:tcp_fallback}. 
 
 \subsection{Microbenchmark: Echo Latency}
 \input{figures/erpc_vs_gsm_loaded_latency}
@@ -46,10 +46,10 @@ it having minimum latency of 1 millisecond. This experiment also uses the echo a
 \name{} and eRPC use batching for asynchronous requests, load here is represented by the number of outstanding 
 requests at any given time.
 
-\ref{fig:erpc_gsm1} shows the results of this experiment. Each data point here represents a doubling of batch 
+Figure~\ref{fig:erpc_gsm1} shows the results of this experiment. Each data point here represents a doubling of batch 
 size until 32 and then an increment of 16. Both system have increased throughput and latency as the number of 
 outstanding requests increases, however eRPC does better at smaller loads in terms of both latency and throughput. 
-This is because of the optimizations discussed in Section \ref{sg:slots}, that result in better performance at higher 
+This is because of the optimizations discussed in Section~\ref{sg:slots}, that result in better performance at higher 
 load at the cost of small performance penalty at lower loads, along with the overhead of switching fibers being 
 significant at lower load. eRPC then quickly reaches its peak throughput and any increase in load only increases 
 the latency whereas \name{} is able to achieve much higher throughput while remaining below 100 \textmu s tail 
@@ -71,14 +71,14 @@ server. These experiments are denoted ``client sharded" in the figures. The sing
 crate ``dashmap" version ``6.1.0" \cite{dashmap6} and a hashmap with 4096 shards protected by a readers-writers lock referred as 
 Rwlock below. In case of Redis, we disable replication and disk backup and provide two I/O threads per instance. 
 Each server machine runs eight Redis instances. This configuration was selected after extensive experimentation 
-to ensure maximum performance. The key space 
+to ensure maximum performance. The key space in
 these experiments consists of one million keys and queries consist of 8 byte keys and 16 byte values. Each reported 
 data point here is an average of three runs after an initial warm up stage that populates all the keys. For these 
 experiments up to 8 machines act as servers and up to 4 machines act as clients with each client machine running 
 256 threads over 64 cores. For Hydra, each client thread connects to one server using TCP. However, for trust, 
 Dashmap and Rwlock, each thread needs to connect with each server.
 
-\ref{fig:kv_ycsbc_u} and \ref{fig:kv_ycsbb_u} show the number of operations per second for a read only workload and 
+Figure~\ref{fig:kv_ycsbc_u} and Figure~\ref{fig:kv_ycsbb_u} show the number of operations per second for a read only workload and 
 5\% write, 95\% read workload respectively with a uniform distribution of keys. Hydra scales much better than 
 running independent servers and leaving the sharding to the clients. This is explained by the fact that for Hydra, 
 a client can send a whole batch of requests to any of the servers regardless of where the keys may reside, but for 
@@ -93,7 +93,7 @@ depending on workload \cite{redis-bench}. This is significantly less than per th
 stores in this experiment. We also include a line labeled ``redis hypothetical'', showing how it would scale were 
 it to have the same per thread performance as Hydra.
 
-\ref{fig:kv_ycsbc_z} and \ref{fig:kv_ycsbb_z} show the number of operations per second for a read only workload and 
+Figure~\ref{fig:kv_ycsbc_z} and Figure~\ref{fig:kv_ycsbb_z} show the number of operations per second for a read only workload and 
 5\% write, 95\% read workload respectively with a Zipfian distribution of keys. We see similar trends for read only 
 workload but Dashmap and Rwlock scale particularly poorly with the mixed workload due to high contention resulting 
 from most of the queries being about a small number of keys. The contention stems from Rwlock and Dashmap, which 
@@ -113,10 +113,10 @@ of kronecker generator with an edge factor of 32. For each experiment we compute
 on eight randomly chosen source nodes and report the average time taken per run. SSSP involves computing the 
 shortest path to all reachable nodes in the graph, given a source node.
 
-\ref{fig:sssp_threads_n27} shows the results of SSSP on a graph with $2^{27}$ nodes and average degree of 32, 
+Figure~\ref{fig:sssp_threads_n27} shows the results of SSSP on a graph with $2^{27}$ nodes and average degree of 32, 
 as the size of the cluster increases. Each successive data point increments the thread count by 32. Even though
 graph500 is a highly specialized application designed to benchmark supercomputers, \name{} is still able to match 
-its performance while remaining a general-purpose framework. Similarly, \ref{fig:sssp_size} shows \name{} 
+its performance while remaining a general-purpose framework. Similarly, Figure~\ref{fig:sssp_size} shows \name{} 
 achieving comparable performance to graph500 across a range of graph sizes with 384 threads across 12 machines.
 
 

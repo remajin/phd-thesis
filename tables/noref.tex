@@ -1,0 +1,28 @@
+\begin{table}
+\begin{subtable}[t]{1\textwidth}
+\centering
+\begin{lstlisting}
+// trustee_ref can be a reference to either local or remote trustee
+let trust = trustee_ref.entrust(0u64);
+let data = Box::new(5);
+trust.apply(move |property| *property + *data);
+\end{lstlisting}
+\caption{If the delegated closure captures a pointer, it can result in a segmentation fault.}
+\label{tab:pointer}
+\end{subtable}
+		
+\begin{subtable}[t]{1\textwidth}
+\centering
+\begin{lstlisting}
+// trustee_ref can be a reference to either local or remote trustee
+let trust = trustee_ref.entrust(0u64);
+let data = Box::new(5);
+trust.apply_with(move |property, data| {*property + *data}, data);
+\end{lstlisting}
+\caption{Instead of capturing a pointer, the relevant data can be serialized and sent to trustee.}
+\label{tab:serialized}
+\end{subtable}
+
+\caption{\name{} disallows pointers from being captured and uses serialization to get around the limitation.}
+\label{tab:noref}
+\end{table}

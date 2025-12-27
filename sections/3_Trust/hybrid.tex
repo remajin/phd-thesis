@@ -19,13 +19,13 @@
     \label{hybrid:fig:motivation-95r}
 \end{figure*}
 
-\ref{f:kvstore_tput} shows that delegation's performance advantage depends on the workload and lock contention 
+Figure~\ref{f:kvstore_tput} shows that delegation's performance advantage depends on the workload and lock contention 
 levels. This raises the question of whether it is possible to get the best of both worlds. In his PhD thesis, 
 Dr. Chen \cite{chen_thesis} introduced HybridLock, a synchronization mechanism that dynamically switches between 
 traditional locking and delegation based on workload conditions. When a HybridLock is created, it assumes low 
 contention and starts with locking as default. If, during the runtime, it detects that the lock is highly contented, 
 it switches to using delegation manage access to the associated property. By efficiently detecting contention and 
 switching between the two modes, HybridLock can leverage delegation to achieve high performance in a highly 
-contented system while keeping the overhead during low contention workload to a minimum. \ref{hybrid:fig:motivation-95r} 
+contented system while keeping the overhead during low contention workload to a minimum. Figure~\ref{hybrid:fig:motivation-95r} 
 is taken from Dr. Chen's thesis and shows that HybridLock can maintain high performance across contention levels. 
 It is included here for reference only.

@@ -18,7 +18,7 @@ operations. The completion queue can be shared between both parts of the QP.
 For remote access the remote machine first needs to register a memory region with the NIC. The NIC driver 
 pins this region in physical memory. The address and a key related to this region then needs to be exchanged 
 between the machines out of band (i.e. without using RDMA). After this exchange, the remote memory can be 
-accessed without involving either of remote operating system or CPU as shown in \ref{fig:rdma}. This is called 
+accessed without involving either of remote operating system or CPU as shown in Figure~\ref{fig:rdma}. This is called 
 \textit{RDMA Memory Semantics}, and uses \textit{verbs} \textit{READ} and \textit{WRITE}.
 
 RDMA also provides \textit{Messaging Semantics} that use \textit{verbs} \textit{SEND} and \textit{RECV}. In 
@@ -36,7 +36,7 @@ communicate with many QPs. For reliable transport NIC uses acknowledgments to gu
 return an error code on failure, while unreliable transport does not provide any such guarantee. InfiniBand 
 and RoCE use lossless link layer, so even in case of unreliable transports, losses are pretty rare and happen 
 because of bit error or link failure. In case of connected transport a failure will break the connection. Not 
-all transports provide all of the verbs. \ref{tab:rdma} gives an overview of transport types and the 
+all transports provide all of the verbs. Table~\ref{tab:rdma} gives an overview of transport types and the 
 verbs they support. Current implementations of RDMA only provide reliable connected (RC), unreliable 
 connected (UC) and unreliable datagram.
 
