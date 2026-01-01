@@ -29,5 +29,5 @@ thesis: plots
 	pdflatex -bibtex thesis
 
 epub:
-	latexmlc -dest=thesis.epub thesis.tex
+	latexmlc --splitat=chapter -dest=thesis.epub thesis.tex
 	ebook-meta thesis.epub --authors "Noaman Ahmad"
