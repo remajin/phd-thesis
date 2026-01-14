@@ -28,6 +28,9 @@
 \usepackage{setspace}
 \usepackage{geometry}
 \usepackage{hyperref}
+\usepackage{etoolbox}
+\pretocmd{\frontmatter}{\addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}}{}{}
+\pretocmd{\mainmatter}{\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}}{}{}
 \geometry{margin=1in, top=1.3in}
 
 % \newglossarystyle{clong}{%
@@ -99,8 +102,12 @@
 
 \makeatletter
 \renewcommand{\chaptermark}[1]{%
-  \markboth{\chaptername\ \thechapter.\ #1}%
-           {\chaptername\ \thechapter.\ #1}%
+  \ifnum\c@chapter>0
+    \markboth{\chaptername\ \thechapter.\ #1}%
+             {\chaptername\ \thechapter.\ #1}%
+  \else
+    \markboth{#1}{#1}%
+  \fi
 }
 \renewcommand{\sectionmark}[1]{}
 
