@@ -24,14 +24,13 @@
 \usepackage{listings-rust}
 \usepackage{pgf}
 \usepackage{fancyvrb}
-\usepackage{pdfpages}
 \usepackage{setspace}
+\usepackage{etoolbox}
 \usepackage{geometry}
 \usepackage{hyperref}
-\usepackage{etoolbox}
 \pretocmd{\frontmatter}{\addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}}{}{}
 \pretocmd{\mainmatter}{\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}}{}{}
-\geometry{margin=1in, top=1.3in}
+\geometry{margin=1in, top=1.3in, bottom=1in, footskip=2\normalbaselineskip}
 
 % \newglossarystyle{clong}{%
 %  \renewenvironment{theglossary}%
@@ -119,7 +118,7 @@
 % Make room for two lines
 \setlength{\headheight}{24pt}
 
-\def\@oddhead{%
+\def\my@oddhead{%
   \vbox{%
     % page number on its own line
     \hbox to \textwidth{\hfil\thepage}%
@@ -132,7 +131,7 @@
   }%
 }
 
-\def\@evenhead{%
+\def\my@evenhead{%
   \vbox{%
     \hbox to \textwidth{\thepage\hfil}%
     \vskip 4pt
@@ -167,6 +166,26 @@
     {\normalfont\bfseries}%
 }
 \makeatother
+
+\makeatletter
+%\renewcommand\@pnumwidth{1em} % <-- depending on the total number of pages
+\patchcmd{\@tocline}{\hfil}{\leaders\hbox{\,.\,}\hfil}{}{}
+
+\patchcmd{\@figline}{\hfil}{\leaders\hbox{\,.\,}\hfil}{}{}
+
+\patchcmd{\@tabline}{\hfil}{\leaders\hbox{\,.\,}\hfil}{}{}
+
+
+\renewcommand{\tocsection}[3]{%
+  \indentlabel{\@ifnotempty{#2}{\ignorespaces#1 #2\quad}}#3} % was #2.\quad
+\let\tocchapter\tocsection
+\let\tocsubsection\tocsection
+\let\tocparagraph\tocsection
+\let\tocsubparagraph\tocsection
+\makeatother
+
+
+
 
 
 % \makeglossaries

@@ -12,11 +12,11 @@
 \newcommand{\degree}{Doctor of Philosophy}
 \newcommand{\programname}{Computer Science}
 \newcommand{\committee}{Jakob Eriksson, Chair and Advisor \\
-Xingbo Wu, Microsoft Research \\
+Michael Papka \\
 Ajay Kshemkalyani \\
 Lu\'{i}s Pina \\
-Erdem Koyuncu \\
-Michael Papka}
+Erdem Koyuncu, Electrical and Computer Engineering \\
+Xingbo Wu, Microsoft Research}
 \newcommand{\theauthor}{Noaman Ahmad}
 \newcommand{\priordegrees}{BS CS, Lahore University of Management Sciences, 2018\\ MS CS, University of Illinois at Chicago, 2025}
 \newcommand{\graduationyear}{2026}
@@ -54,6 +54,7 @@ Michael Papka}
     \committee \\
 \end{titlepage}
 
+\pagestyle{plain}
 \setcounter{page}{2} %This is UIC requirement, the title page is (i)
 \spacing{2}
 
@@ -71,14 +72,17 @@ Michael Papka}
 \singlespace
 
 \setcounter{tocdepth}{2}
-\pagestyle{plain}
+
 \tableofcontents
-\pagestyle{headings}
 \listoftables
 \listoffigures
 % \printglossary[type=\acronymtype,title=LIST OF ABBREVIATIONS,style=clong]
 \setcounter{table}{0}
 
+\makeatletter
+\let\@oddhead\my@oddhead
+\let\@evenhead\my@evenhead
+\makeatother
 \endsinglespace
 \spacing{2}
 
