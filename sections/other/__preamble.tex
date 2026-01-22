@@ -100,16 +100,6 @@
 }
 
 \makeatletter
-\renewcommand{\chaptermark}[1]{%
-  \ifnum\c@chapter>0
-    \markboth{\chaptername\ \thechapter.\ #1}%
-             {\chaptername\ \thechapter.\ #1}%
-  \else
-    \markboth{#1}{#1}%
-  \fi
-}
-\renewcommand{\sectionmark}[1]{}
-
 
 % Save original headers
 \let\ams@oddhead\@oddhead
@@ -142,7 +132,20 @@
   }%
 }
 
+\newcommand{\setupchapterheaders}{%
+  \pagestyle{headings}
+  \makeatletter
+  \renewcommand{\chaptermark}[1]{%
+    \markboth{\chaptername\ \thechapter.\ ##1}%
+             {\chaptername\ \thechapter.\ ##1}%
+  }
+  \renewcommand{\sectionmark}[1]{}
+  \let\@oddhead\my@oddhead
+  \let\@evenhead\my@evenhead
+  \makeatother
+}
 \makeatother
+
 
 
 \makeatletter
